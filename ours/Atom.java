@@ -1,12 +1,12 @@
 package ours;
 
-public class Atom {
-	final static String H = "H";
-	final static String C = "C";
-	final static String N = "N";
-	final static String O = "O";
-	final static String S = "S";
-	final static String P = "P";
+public class Atom extends Point {
+	public final static String H = "H";
+	public final static String C = "C";
+	public final static String N = "N";
+	public final static String O = "O";
+	public final static String S = "S";
+	public final static String P = "P";
 	final static float R_H = 1f;
 	final static float R_C = 1.3207547170f; 
 	final static float R_N = 1.2226415094f; 
@@ -21,11 +21,15 @@ public class Atom {
 	public float g;
 	public float b;
 	String name;
+	
 	public Atom(String name, double x, double y, double z) {
+		super(new double[]{x, y, z});
+		
 		this.name = name;
 		this.x = (float) x;
 		this.y = (float) y;
 		this.z = (float) z;
+		
 		switch (name) {
 		case H:
 			this.radius = R_H;

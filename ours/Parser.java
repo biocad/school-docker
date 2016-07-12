@@ -7,13 +7,13 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class Parser {
-	double BN = 10000;
+	double BN = 100000000;
+	private double minx = BN;
+	private double miny = BN;
+	private double minz = BN;
 	public double maxx = -BN;
-	public double minx = BN;
 	public double maxy = -BN;
-	public double miny = BN;
 	public double maxz = -BN;
-	public double minz = BN;
 	public ArrayList<Atom> atoms;
 	public Parser(String name) throws IOException{
 		atoms = new ArrayList<>();
@@ -40,20 +40,14 @@ public class Parser {
 			s = in.nextLine();
 		}
 		int len = atoms.size();
-		double dx = (minx + maxx) / 2,
-		       dy = (miny + maxy) / 2,
-		       dz = (minz + maxz) / 2;
 		for (int i = 0; i < len; i++){
-			atoms.get(i).x -= dx;
-			atoms.get(i).y -= dy;
-			atoms.get(i).z -= dz;
+			atoms.get(i).x -= minx;
+			atoms.get(i).y -= miny;
+			atoms.get(i).z -= minz;
 		}
-		minx -= dx;
-		miny -= dy;
-		minz -= dz;
-		maxx -= dx;
-		maxy -= dy;
-		maxz -= dz;
+		maxx -= minx;
+		maxy -= miny;
+		maxz -= minz;
 		in.close();
 	}
 }

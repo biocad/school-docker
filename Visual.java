@@ -20,73 +20,83 @@ public class Visual extends Applet implements KeyListener {
 	static Transform3D transform;
 	static BranchGroup bg = new BranchGroup();
 	static Random rand = new Random();
-	
-	public static float randCoord() {
-		return (float) (rand.nextDouble() - rand.nextDouble());
-	}
+	static Scanner in = new Scanner(System.in);
 	
 	public static boolean inRange(int i, int j, int k, int w, int h, int d) {
 		return i >= 0 && i < w && j >= 0 && j < h && k >= 0 && k < d;
 	}
 	
 	public Visual(String name) throws IOException {
-		Parser p = new Parser(name);
-		int len = p.atoms.size();
-		double sizex = p.maxx - p.minx,
-		       sizey = p.maxy - p.miny,
-			   sizez = p.maxz - p.minz;
-		int n = 50;
-		double size = Math.max(sizex, Math.max(sizey, sizez));
-		Grid grid = new Grid(p, n, (n - 1) / size);
-		len = grid.cells.size();
 		tg = new TransformGroup();
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		Color3f black = new Color3f(0, 0, 0);
-		float scale = 0.04f;
-		for (int i = 0; i < len; i++) {
-			/*
-			Atom atom = p.atoms.get(i);
-			Sphere sphere = new Sphere((float) (atom.radius * scale));
-			*/
-			int[] coords = grid.cells.get(i);
-			
-			boolean doNotDraw = true;
-			int cx = coords[0] + n / 2,
-			    cy = coords[1] + n / 2,
-			    cz = coords[2] + n / 2;
-			int[] dx = new int[]{0, 0, 0, 0, 1, -1},
-			      dy = new int[]{0, 0, 1, -1, 0, 0},
-				  dz = new int[]{1, -1, 0, 0, 0, 0};
-			for (int j = 0; j < 6; j++) {
-				int x = cx + dx[j],
-				    y = cy + dy[j],
-					z = cz + dz[j];
-				if (!inRange(x, y, z, n, n, n) || !grid.grid[x][y][z]) {
-					doNotDraw = false;
-					break;
-				}
+		
+		Parser p = new Parser(name);
+		int len = p.atoms.size();
+		System.out.print("Parsed " + len + " atoms. Enter 1 to show molecule, 2 to show grid: ");
+		
+		switch (in.next()) {
+		case "1":
+			for (int i = 0; i < len; i++) {
+				Atom atom = p.atoms.get(i);
+				Sphere sphere = new Sphere((float) (atom.radius / 20));
+				Color3f color = new Color3f(atom.r, atom.g, atom.b);
+				Appearance ap = new Appearance();
+				Material material = new Material(color, black, color, black, 1f);
+				ap.setMaterial(material);
+				sphere.setAppearance(ap);
+				TransformGroup cur = new TransformGroup();
+				transform = new Transform3D();
+				Vector3f vector = new Vector3f((float) atom.x / 20,
+											   (float) atom.y / 20, 
+											   (float) atom.z / 20);
+				transform.setTranslation(vector);
+				cur.setTransform(transform);
+				cur.addChild(sphere);
+				tg.addChild(cur);
 			}
-			if (doNotDraw) continue;
-			ColorCube cube = new ColorCube(scale * 0.49f);
-			
-			TransformGroup cur = new TransformGroup();
-			transform = new Transform3D();
-			Vector3f vector = new Vector3f((float) /*atom.x*/ coords[0] * scale,
-			                               (float) /*atom.y*/ coords[1] * scale, 
-										   (float) /*atom.z*/ coords[2] * scale);
-			transform.setTranslation(vector);
-			cur.setTransform(transform);
-			/*
-			Color3f color = new Color3f(atom.r, atom.g, atom.b);
-			Appearance ap = new Appearance();
-			Material material = new Material(color, black, color, black, 1f);
-			ap.setMaterial(material);
-			sphere.setAppearance(ap);
-			cur.addChild(sphere);
-			*/
-			cur.addChild(cube);
-			tg.addChild(cur);
-		}		
+			break;
+		case "2":
+			int n = 50;
+			double r = 1.5;
+			double max = Math.max(Math.max(p.maxx, p.maxy), p.maxz) + 2 * r;
+			Grid grid = new Grid(p, n, r, (double) max / n);
+			len = grid.cells.size();
+			float scale = 0.04f;
+			for (int i = 0; i < len; i++) {
+				int[] coords = grid.cells.get(i);
+				
+				boolean doNotDraw = true;
+				int cx = coords[0],
+					cy = coords[1],
+					cz = coords[2];
+				int[] dx = new int[]{0, 0, 0, 0, 1, -1},
+					  dy = new int[]{0, 0, 1, -1, 0, 0},
+					  dz = new int[]{1, -1, 0, 0, 0, 0};
+				for (int j = 0; j < 6; j++) {
+					int x = cx + dx[j],
+						y = cy + dy[j],
+						z = cz + dz[j];
+					if (!inRange(x, y, z, n, n, n) || !grid.grid[x][y][z]) {
+						doNotDraw = false;
+						break;
+					}
+				}
+				if (doNotDraw) continue;
+				ColorCube cube = new ColorCube(scale * 0.49f);
+				
+				TransformGroup cur = new TransformGroup();
+				transform = new Transform3D();
+				Vector3f vector = new Vector3f((float) coords[0] * scale,
+											   (float) coords[1] * scale, 
+											   (float) coords[2] * scale);
+				transform.setTranslation(vector);
+				cur.setTransform(transform);
+				cur.addChild(cube);
+				tg.addChild(cur);
+			}
+			break;
+		}
 		bg.addChild(tg);
 		
 		Color3f light1Color = new Color3f(1f, 1f, 1f);
@@ -109,7 +119,8 @@ public class Visual extends Applet implements KeyListener {
 	}
 	
 	public static void main(String[] args) throws IOException {
-		Visual visual = new Visual(args[0]);
+		System.out.print("Name: ");
+		Visual visual = new Visual(in.next());
 		visual.addKeyListener(visual);
 		new MainFrame(visual, 600, 600); 
 	}
