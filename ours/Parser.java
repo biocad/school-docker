@@ -1,7 +1,6 @@
 package ours;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -14,11 +13,21 @@ public class Parser {
 	public double maxx = -BN;
 	public double maxy = -BN;
 	public double maxz = -BN;
+	public double size;
 	public ArrayList<Atom> atoms;
-	public Parser(String name) throws IOException{
+	public String name;
+	
+	public Parser(String name) {
+		this.name = name;
 		atoms = new ArrayList<>();
 		Locale.setDefault(Locale.US);
-		Scanner in = new Scanner(new File("data/" + name + ".pdb"));
+		Scanner in = null;
+		try {
+			in = new Scanner(new File("data/" + name + ".pdb"));
+		} catch (Exception e) {
+			System.out.println("not found");
+			System.exit(0);
+		}
 		String s = in.nextLine(); 
 		while (!s.substring(0, 3).equals("END")){
 			if (s.substring(0, 4).equals("ATOM")){
@@ -48,6 +57,7 @@ public class Parser {
 		maxx -= minx;
 		maxy -= miny;
 		maxz -= minz;
+		size = Utils.max(maxx, maxy, maxz);
 		in.close();
 	}
 }

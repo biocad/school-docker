@@ -7,28 +7,28 @@ public class Atom extends Point {
 	public final static String O = "O";
 	public final static String S = "S";
 	public final static String P = "P";
-	final static float R_H = 1f;
-	final static float R_C = 1.3207547170f; 
-	final static float R_N = 1.2226415094f; 
-	final static float R_O = 1.1320754717f; 
-	final static float R_P = 2.4150943396f; 
-	final static float R_S = 1.8867924528f;  
-	public float x;
-	public float y;
-	public float z;
-	public float radius;
-	public float r;
-	public float g;
-	public float b;
+	final static double R_H = 1f;
+	final static double R_C = 1.4166666666f; 
+	final static double R_N = 1.2916666666f; 
+	final static double R_O = 1.2916666666f; 
+	final static double R_P = 1.625f; 
+	final static double R_S = 1.5f;  
+	public double x;
+	public double y;
+	public double z;
+	public double radius;
+	public double r;
+	public double g;
+	public double b;
 	String name;
 	
 	public Atom(String name, double x, double y, double z) {
 		super(new double[]{x, y, z});
 		
 		this.name = name;
-		this.x = (float) x;
-		this.y = (float) y;
-		this.z = (float) z;
+		this.x = x;
+		this.y = y;
+		this.z = z;
 		
 		switch (name) {
 		case H:
