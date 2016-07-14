@@ -1,67 +1,47 @@
 package ours;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.TreeSet;
 
 public class Grid {
-	public static boolean[][][] grid;
-	static TreeSet<Integer> set = new TreeSet<>();
-	public static ArrayList<int[]> cells = new ArrayList<>();
-	private static RangeTree rangeTree;
-	static boolean find(Parser p, double x, double y, double z, double r) {
-		Point r1 = new Point(new double[]{x - r, y - r, z - r});
-		Point r2 = new Point(new double[]{x + r, y + r, z + r});
-		ArrayList<Point> ans = rangeTree.search(r1, r2);
-		int len = ans.size();
-		for (int i = 0; i < len; i++) {
-			Point point = ans.get(i);
-			double dx = x - point.coords[0],
-				   dy = y - point.coords[1],
-				   dz = z - point.coords[2];
-			if (dx * dx + dy * dy + dz * dz < r * r) return true;
-		}
-		return false;
+	public ArrayList<Cell> cells = new ArrayList<>();
+	private TreeSet<Integer> set = new TreeSet<>();
+	
+	public static boolean inRange(int i, int j, int k, int w, int h, int d) {
+		return i >= 0 && i < w && j >= 0 && j < h && k >= 0 && k < d;
 	}
+	
 	public Grid(Parser p, int n, double r, double scale) {
-		grid = new boolean[n][n][n];
-		
-		// ArrayList<Atom> -> ArrayList<Point> conversion
-		ArrayList<Point> points = new ArrayList<>();
-		for (int i = 0; i < p.atoms.size(); i++) {
+		int len = p.atoms.size();
+		for (int i = 0; i < len; i++) {
 			Atom a = p.atoms.get(i);
-			Point cur = new Point(new double[]{a.x, a.y, a.z});
-			points.add(cur);
-		}
-		
-		long t1 = System.nanoTime();
-		
-		System.out.println("Range-tree construction...");
-		
-		rangeTree = new RangeTree(points);
-		for (int i = 0; i < n; i++) {
-			System.out.print("_");
-		}
-		
-		System.out.println();
-		
-		for (int i = 0; i < n; i++) {
-			System.out.print("#");
-			for (int j = 0; j < n; j++) {
-				for (int k = 0; k < n; k++) {
-					double x = i * scale - r,
-					       y = j * scale - r,
-						   z = k * scale - r;
-					if (find(p, x, y, z, r, true) == find(p, x, y, z, r, false)) continue;
-					grid[i][j][k] = true;
-					int id = n * n * i + n * j + k;
-					if (!set.contains(id)) {
-						cells.add(new int[]{i, j, k});
-						set.add(id);
+			double x = a.x + r;
+			double y = a.y + r;
+			double z = a.z + r;
+			int li = (int) Math.ceil((x - r) / scale);
+			int lj = (int) Math.ceil((y - r) / scale);
+			int lk = (int) Math.ceil((z - r) / scale);
+			int ri = (int) Math.ceil((x + r) / scale);
+			int rj = (int) Math.ceil((y + r) / scale);
+			int rk = (int) Math.ceil((z + r) / scale);
+			for (int ci = li; ci <= ri; ci++) {
+				for (int cj = lj; cj <= rj; cj++) {
+					for (int ck = lk; ck <= rk; ck++) {
+						double dx = ci * scale - x;
+						double dy = cj * scale - y;
+						double dz = ck * scale - z;
+						if (dx*dx + dy*dy + dz*dz <= r*r) {
+							if (inRange(ci, cj, ck, n, n, n)) {
+								int id = n * n * ci + n * cj + ck;
+								if (!set.contains(id)) {
+									cells.add(new Cell(ci, cj, ck));
+									set.add(id);
+								}
+							}
+						}
 					}
 				}
 			}
 		}
-		long t2 = System.nanoTime();
-		System.out.println();
-		System.out.println("Time: " + ((t2 - t1) / 1000000) + "ms");
 	}
 }
