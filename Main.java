@@ -23,6 +23,16 @@ public class Main {
 	public static double smallPositiveValue = 0.0001;
 	static Scanner in = new Scanner(System.in);
 	
+	public static double[][][] gridToArray(Grid grid) {
+		double[][][] result = new double[n][n][n];
+		int len = grid.cells.size();
+		for (int i = 0; i < len; i++) {
+			Cell c = grid.cells.get(i);
+			result[n / 4 + c.i][n / 4 + c.j][n / 4 + c.k] = 1;
+		}
+		return result;
+	}
+	
 	public static void copyCoordinatesOfParser(Parser p, Parser p1){
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++){
@@ -175,10 +185,10 @@ public class Main {
 		//finding scale
 		double size1 = Math.max( parser1.maxx, Math.max( parser1.maxy,  parser1.maxz)) + 2 * distance;
 		double size2 = Math.max( parser2.maxx, Math.max( parser2.maxy,  parser2.maxz)) + 2 * distance;
-		scale = Math.max(size1, size2)/(n);
+		scale = Math.max(size1, size2)/(n/2);
 		//generation of grid and gridFT for the bigger molecule
-		staticMolecule = new Grid(parser2, n, distance, scale);
-		staticMoleculeGrid = staticMolecule.grid;
+		staticMolecule = new Grid(parser2, n/2, distance, scale);
+		staticMoleculeGrid = gridToArray(staticMolecule);
 		staticMoleculeGridFT = new double[n][n][2*n];
 		copyingAndFindingSurface(staticMoleculeGrid,  staticMoleculeGridFT, n, smallPositiveValue);
 		fftDo.realForwardFull(staticMoleculeGridFT);
@@ -195,8 +205,8 @@ public class Main {
 					rotation(parser.atoms, phix, phiy, phiz);
 					makeRightPossition(parser);
 					//generation of grid and gridFT for the smaller molecule
-					Grid g1 = new Grid(parser, n, distance, scale);
-					double[][][ ]grid1 = g1.grid;
+					Grid g1 = new Grid(parser, n/2, distance, scale);
+					double[][][ ]grid1 = gridToArray(g1);
 					double[][][ ]grid1FT = new double[n][n][2*n];
 					double[][][ ]newGridC = new double[n][n][2*n];
 					copyingAndFindingSurface(grid1, grid1FT, n, largeNegativeValue);
@@ -215,5 +225,7 @@ public class Main {
 		}
 		finalAnswer = findFinalAnswer(answer);
 		System.out.println(Arrays.toString(finalAnswer));
+		System.out.println("Next Part");
+		dangle /= 2;
 	}
 }
