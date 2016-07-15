@@ -9,7 +9,7 @@ public class Main {
 	final static double R = 1.5;
 	
 	public static void main(String[] args) throws IOException {
-		visual = new Visual();
+		visual = new Visual(600, 600);
 		new MainFrame(visual, 600, 600);
 		
 		// p1 is movable, p2 is static
