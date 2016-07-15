@@ -1,3 +1,5 @@
+package Final;
+
 import com.sun.j3d.utils.applet.MainFrame;
 import java.io.IOException;
 import java.util.Scanner;
@@ -9,7 +11,7 @@ public class Main {
 	final static double R = 1.5;
 	
 	public static void main(String[] args) throws IOException {
-		visual = new Visual(600, 600);
+		visual = new Visual(600);
 		new MainFrame(visual, 600, 600);
 		
 		// p1 is movable, p2 is static
@@ -21,7 +23,7 @@ public class Main {
 		int len2 = p2.atoms.size();
 		System.out.println("Parsed " + len2 + " atoms");
 
-		int n = Utils.requestInt(sc, "Grid edge size");
+		int n = 64;//Utils.requestInt(sc, "Grid edge size");
 		
 		// swap
 		if (len1 > len2) {
@@ -30,13 +32,13 @@ public class Main {
 			p2 = t;
 		}
 		visual.drawMolecule(p2);
-
+		
 		Fourier.parser1 = p1;
 		Fourier.parser2 = p2;
 		Fourier.n = n;
 		Fourier.main(new String[]{});
-		Utils.placeMolecule(Fourier.finalAnswer, p1, Fourier.scale);
-
+		Utils.placeMolecule(Fourier.finalAnswer, p1, Fourier.scale, n);
 		visual.drawMolecule(p1);
+		//visual.drawGrid(Fourier.staticMoleculeGrid, Fourier.smallPositiveValue);
 	}
 }
