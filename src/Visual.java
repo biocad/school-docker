@@ -1,7 +1,6 @@
 import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.Arrays;
 
 import com.sun.j3d.utils.universe.*;
 import javax.media.j3d.*;
@@ -66,6 +65,17 @@ public class Visual extends Applet implements KeyListener, MouseMotionListener {
 		int len = grid.cells.size();
 		for (int i = 0; i < len; i++) {
 			Cell cell = grid.cells.get(i);
+			boolean draw = false;
+			for (int j = 0; j < Utils.neighbours.length; j++) {
+				int di = Utils.neighbours[j].i;
+				int dj = Utils.neighbours[j].j;
+				int dk = Utils.neighbours[j].k;
+				if (!grid.exists(cell.i + di , cell.j + dj, cell.k + dk)) {
+					draw = true;
+					break;
+				}
+			}
+			if (!draw) continue;
 			Color3f color = new Color3f(0, 0, 1);
 			if (dark) {
 				color = new Color3f(1, 1, 0);

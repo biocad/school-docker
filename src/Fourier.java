@@ -15,35 +15,36 @@ public class Fourier {
 	public Params params;
 	public Visual visual;
 
-	public double[][][] gridToArray(Grid grid, Params params, double value) {
-		int n = params.N;
-		double[][][] result = new double[2 * n][2 * n][2 * n];
-		int len = grid.cells.size();
-		for (int i = 0; i < len; i++) {
-			Cell c = grid.cells.get(i);
-			result[n / 2 + c.i][n / 2 + c.j][n / 2 + c.k] = value;
+	private double[][][] replaceInnerValues(Grid g, double value) {
+		int[][][] grid = g.toArray();
+		int n = grid.length;
+		double[][][] r = new double[n][n][n];
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					double v = grid[i][j][k];
+					if (v == Grid.inner) {
+						v = value;
+					}
+					r[i][j][k] = v;
+				}
+			}
 		}
-		return result;
+		return r;
 	}
 	
-	public void copyingAndFindingSurface(double[][][] grid, double[][][] gridFT, double value) {
+	private void copy(double[][][] grid, double[][][] gridFT) {
 		int n = grid.length;
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int k = 0; k < n; k++) {
-					if (grid[i][j][k] == value){
-						if (grid[i + 1][j][k] == 0 || grid[i][j + 1][k] == 0 || grid[i][j][k + 1] == 0 ||
-						    grid[i - 1][j][k] == 0 || grid[i][j - 1][k] == 0 || grid[i][j][k - 1] == 0) {
-							grid[i][j][k] = 1;
-						}
-						gridFT[i][j][k] = grid[i][j][k];
-					}
+					gridFT[i][j][k] = grid[i][j][k];
 				}
 			}
 		}
 	}
 
-	public void multiplying(double[][][] newGridC, double[][][] grid1FT, double[][][] grid2FT, int n) {
+	private void multiplying(double[][][] newGridC, double[][][] grid1FT, double[][][] grid2FT, int n) {
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int k = 0; k < n; k++) {
@@ -57,7 +58,7 @@ public class Fourier {
 		}
 	}
 
-	public void makingInversable(double grid[][][], int n) {
+	private void makingInversable(double grid[][][], int n) {
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				if (i == 0 || i == n / 2) {
@@ -88,7 +89,7 @@ public class Fourier {
 		}
 	}
 
-	public double[] findingPeak(double[][][] grid, int n) {
+	private double[] findingPeak(double[][][] grid, int n) {
 		double[] answer = new double[sizeOfAnswer];
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
@@ -105,7 +106,7 @@ public class Fourier {
 		return answer;
 	}
 
-	public double[] findFinalAnswer(double[][] answer) {
+	private double[] findFinalAnswer(double[][] answer) {
 		double[] finalAnswer = new double[sizeOfAnswer];
 		for (int i = 0; i < amountOfPositions; i++) {
 			if (finalAnswer[0] < answer[i][0]) {
@@ -134,9 +135,9 @@ public class Fourier {
 		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
 		// generation of grid and gridFT for the bigger molecule
 		Grid sGrid = new Grid(sParser, params);
-		double[][][] staticMoleculeGrid = gridToArray(sGrid, params, smallPositiveValue);
+		double[][][] staticMoleculeGrid = replaceInnerValues(sGrid, smallPositiveValue);
 		double[][][] staticMoleculeGridFT = new double[2 * n][2 * n][4 * n];
-		copyingAndFindingSurface(staticMoleculeGrid, staticMoleculeGridFT, smallPositiveValue);
+		copy(staticMoleculeGrid, staticMoleculeGridFT);
 		fftDo.realForwardFull(staticMoleculeGridFT);
 		// beginning of rotations
 		int done = 0;
@@ -152,13 +153,13 @@ public class Fourier {
 					//parser.dropOnAxisses();
 					// generation of grid and gridFT for the smaller molecule
 					Grid g1 = new Grid(parser, params);
-					double[][][] grid1 = gridToArray(g1, params, largeNegativeValue);
+					double[][][] grid1 = replaceInnerValues(g1, largeNegativeValue);
 					double[][][] grid1FT = new double[2 * n][2 * n][4 * n];
 					double[][][] newGridC = new double[2 * n][2 * n][4 * n];
-					copyingAndFindingSurface(grid1, grid1FT, largeNegativeValue);
+					copy(grid1, grid1FT);
 					fftDo.realForwardFull(grid1FT);
-					multiplying(newGridC, grid1FT, staticMoleculeGridFT, n);
-					makingInversable(newGridC, n);
+					multiplying(newGridC, grid1FT, staticMoleculeGridFT, 2 * n);
+					makingInversable(newGridC, 2 * n);
 					fftDo.realInverse(newGridC, true);
 					int numberOfAnswer = (int) (i * (2 * Math.PI / dangle) * (2 * Math.PI / dangle)
 							+ j * (2 * Math.PI / dangle) + k);
