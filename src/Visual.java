@@ -1,6 +1,7 @@
 import java.applet.Applet;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Arrays;
 
 import com.sun.j3d.utils.universe.*;
 import javax.media.j3d.*;
@@ -65,15 +66,11 @@ public class Visual extends Applet implements KeyListener, MouseMotionListener {
 		int len = grid.cells.size();
 		for (int i = 0; i < len; i++) {
 			Cell cell = grid.cells.get(i);
-			ColorCube cube = new ColorCube();
 			Color3f color = new Color3f(0, 0, 1);
 			if (dark) {
 				color = new Color3f(1, 1, 0);
 			}
-			Appearance ap = new Appearance();
-			Material material = new Material(color, black, color, black, 1f);
-			ap.setMaterial(material);
-			cube.setAppearance(ap);
+			OwnCube cube = new OwnCube(0.4, color);
 			TransformGroup cur = new TransformGroup();
 			Transform3D transform = new Transform3D();
 			Vector3d vector = new Vector3d(cell.i + offset.i,
@@ -107,6 +104,7 @@ public class Visual extends Applet implements KeyListener, MouseMotionListener {
 		
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		Canvas3D canvas = new Canvas3D(config);
+		System.out.println(canvas.queryProperties().get("native.version"));
 		canvas.addKeyListener(this);
 		canvas.addMouseMotionListener(this);
 		add("Center", canvas);

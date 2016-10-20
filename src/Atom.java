@@ -1,18 +1,21 @@
 
 
 public class Atom {
-	public final static String H = "H";
-	public final static String C = "C";
-	public final static String N = "N";
-	public final static String O = "O";
-	public final static String S = "S";
-	public final static String P = "P";
-	final static double R_H = 1f;
-	final static double R_C = 1.4166666666f; 
-	final static double R_N = 1.2916666666f; 
-	final static double R_O = 1.2916666666f; 
-	final static double R_P = 1.625f; 
-	final static double R_S = 1.5f;  
+	public final String H = "H";
+	public final String C = "C";
+	public final String N = "N";
+	public final String O = "O";
+	public final String S = "S";
+	public final String P = "P";
+	
+	private double t = 3;
+	final double R_H = t;//1f;
+	final double R_C = t;//1.4166666666f; 
+	final double R_N = t;//1.2916666666f; 
+	final double R_O = t;//1.2916666666f; 
+	final double R_P = t;//1.625f; 
+	final double R_S = t;//1.5f;
+	
 	public double x;
 	public double y;
 	public double z;

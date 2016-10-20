@@ -6,12 +6,14 @@ import org.jtransforms.fft.*;
 
 public class Fourier {
 	public int sizeOfAnswer = 7;
-	public double[] finalAnswer = new double[sizeOfAnswer];
-	public double dangle = Math.PI / 4;
+	public double dangle = Math.PI;
 	public int amountOfPositions = (int) Math.pow(2 * Math.PI / dangle, 3);
-	public double[][] answer = new double[amountOfPositions][sizeOfAnswer];
-	public double largeNegativeValue = -1e6;
-	public double smallPositiveValue = 1e-3;
+	private double largeNegativeValue = -1e6;
+	private double smallPositiveValue = 1e-3;
+	public Parser sParser;
+	public Parser mParser;
+	public Params params;
+	public Visual visual;
 
 	public double[][][] gridToArray(Grid grid, Params params, double value) {
 		int n = params.N;
@@ -23,16 +25,6 @@ public class Fourier {
 		}
 		return result;
 	}
-
-	public void copyCoordinatesOfParser(Parser p, Parser p1) {
-		int len = p.atoms.size();
-		for (int i = 0; i < len; i++) {
-			p.atoms.get(i).x = p1.atoms.get(i).x;
-			p.atoms.get(i).y = p1.atoms.get(i).y;
-			p.atoms.get(i).z = p1.atoms.get(i).z;
-		}
-	}
-
 	
 	public void copyingAndFindingSurface(double[][][] grid, double[][][] gridFT, double value) {
 		int n = grid.length;
@@ -130,6 +122,14 @@ public class Fourier {
 	}
 	
 	public Fourier(Parser sParser, Parser mParser, Params params, Visual visual) throws IOException {
+		this.sParser = sParser;
+		this.mParser = mParser;
+		this.params = params;
+		this.visual = visual;
+	}
+	
+	public void apply() {
+		double[][] answer = new double[amountOfPositions][sizeOfAnswer];
 		int n = params.N;
 		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
 		// generation of grid and gridFT for the bigger molecule
@@ -139,6 +139,7 @@ public class Fourier {
 		copyingAndFindingSurface(staticMoleculeGrid, staticMoleculeGridFT, smallPositiveValue);
 		fftDo.realForwardFull(staticMoleculeGridFT);
 		// beginning of rotations
+		int done = 0;
 		for (int i = 0; i < Math.PI / dangle; i++) {
 			for (int j = 0; j < 2 * Math.PI / dangle; j++) {
 				for (int k = 0; k < 2 * Math.PI / dangle; k++) {
@@ -165,7 +166,8 @@ public class Fourier {
 					answer[numberOfAnswer][4] = phix;
 					answer[numberOfAnswer][5] = phiy;
 					answer[numberOfAnswer][6] = phiz;
-					System.out.println(Arrays.toString(answer[numberOfAnswer]));
+					done++;
+					System.out.println(done + "/" + amountOfPositions);
 					//break;
 				}
 				//break;
@@ -173,12 +175,18 @@ public class Fourier {
 			//break;
 		}
 		Parser parser = mParser.clone();
-		finalAnswer = findFinalAnswer(answer);
+		double[] finalAnswer = findFinalAnswer(answer);
+//		for (int i = 1; i < 4; i++){
+//			if (finalAnswer[i] < n/2){
+//				finalAnswer[i] *= -1;
+//			}else{
+//				finalAnswer[i] = n - finalAnswer[i];
+//			}
+//		}
 		System.out.println(Arrays.toString(finalAnswer));
 		Utils.rotation(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6]);
 		Grid g = new Grid(parser, params);
 		visual.drawGrid(sGrid, new Cell(0, 0, 0));
 		visual.drawGrid(g, new Cell((int) finalAnswer[1], (int) finalAnswer[2], (int) finalAnswer[3]));
-		System.out.println("Next Part");
 	}
 }

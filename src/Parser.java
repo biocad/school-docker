@@ -43,15 +43,17 @@ public class Parser {
 					double y = Double.parseDouble(s.substring(38, 46).trim());
 					double z = Double.parseDouble(s.substring(46, 54).trim());
 					String nm = s.substring(76, 78).trim();
-					atoms.add(new Atom(nm, x, y, z));
+					Atom atom = new Atom(nm, x, y, z);
+					double r = atom.radius;
+					atoms.add(atom);
 					
-					minX = Math.min(minX, x);
-					minY = Math.min(minY, y);
-					minZ = Math.min(minZ, z);
+					minX = Math.min(minX, x - r);
+					minY = Math.min(minY, y - r);
+					minZ = Math.min(minZ, z - r);
 					
-					maxX = Math.max(maxX, x);
-					maxY = Math.max(maxY, y);
-					maxZ = Math.max(maxZ, z);
+					maxX = Math.max(maxX, x + r);
+					maxY = Math.max(maxY, y + r);
+					maxZ = Math.max(maxZ, z + r);
 				}
 			}
 			s = in.nextLine();
@@ -63,8 +65,8 @@ public class Parser {
 		for (int i = 0; i < len; i++) {
 			Atom atom = atoms.get(i);
 			atom.x -= cx;
-			atom.y -= cx;
-			atom.z -= cx;
+			atom.y -= cy;
+			atom.z -= cz;
 		}
 		minX -= cx;
 		minY -= cy;
