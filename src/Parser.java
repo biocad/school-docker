@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Scanner;
@@ -7,14 +8,8 @@ public class Parser {
 	private double minX, minY, minZ, maxX, maxY, maxZ;
 	private double size;
 	public ArrayList<Atom> atoms;
-	
+
 	private Parser(Parser original) {
-		minX = original.minX;
-		minY = original.minY;
-		minZ = original.minZ;
-		maxX = original.maxX;
-		maxY = original.maxY;
-		maxZ = original.maxZ;
 		size = original.size;
 		atoms = new ArrayList<>();
 		int len = original.atoms.size();
@@ -23,34 +18,30 @@ public class Parser {
 			atoms.add(new Atom(atom.name, atom.x, atom.y, atom.z));
 		}
 	}
-	
-	public Parser(String name) {
+
+	public Parser(File file) throws FileNotFoundException {
 		atoms = new ArrayList<>();
 		Locale.setDefault(Locale.US);
-		Scanner in = null;
-		try {
-			in = new Scanner(new File("data/" + name + ".pdb"));
-		} catch (Exception e) {
-			System.out.println("not found");
-			System.exit(0);
-		}
-		String s = in.nextLine(); 
-		while (!s.substring(0, 3).equals("END")){
-			if (s.substring(0, 4).equals("ATOM")){
+		Scanner in = new Scanner(file);
+		String s = in.nextLine();
+		double maxR = 0;
+		while (!s.substring(0, 3).equals("END")) {
+			if (s.substring(0, 4).equals("ATOM")) {
 				char c = s.charAt(10);
-				if (c >= '0' && c <= '9'){
+				if (c >= '0' && c <= '9') {
 					double x = Double.parseDouble(s.substring(30, 38).trim());
 					double y = Double.parseDouble(s.substring(38, 46).trim());
 					double z = Double.parseDouble(s.substring(46, 54).trim());
 					String nm = s.substring(76, 78).trim();
 					Atom atom = new Atom(nm, x, y, z);
 					double r = atom.radius;
+					maxR = Math.max(maxR, r);
 					atoms.add(atom);
-					
+
 					minX = Math.min(minX, x - r);
 					minY = Math.min(minY, y - r);
 					minZ = Math.min(minZ, z - r);
-					
+
 					maxX = Math.max(maxX, x + r);
 					maxY = Math.max(maxY, y + r);
 					maxZ = Math.max(maxZ, z + r);
@@ -64,55 +55,25 @@ public class Parser {
 		int len = atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom atom = atoms.get(i);
-			atom.x -= cx;
-			atom.y -= cy;
-			atom.z -= cz;
+			size = Math.max(size, ((cx-atom.x)*(cx-atom.x) + (cy-atom.y)*(cy-atom.y)+(cz-atom.z)*(cz-atom.z)));
 		}
-		minX -= cx;
-		minY -= cy;
-		minZ -= cz;
-
-		maxX -= cx;
-		maxY -= cy;
-		maxZ -= cz;
-
-		double dx = maxX - minX;
-		double dy = maxY - minY;
-		double dz = maxZ - minZ;
-		size = Math.sqrt(dx * dx + dy * dy + dz * dz);  
-		
+		size = Math.sqrt(size) + maxR;
+		for (int i = 0; i < len; i++) {
+			Atom atom = atoms.get(i);
+			atom.x -= cx-size;
+			atom.y -= cy-size;
+			atom.z -= cz-size;
+		}
 		in.close();
 	}
 	
 	public Parser clone() {
 		return new Parser(this);
 	}
-	
-	public double getMinX() {
-		return minX;
-	}
-	
-	public double getMinY() {
-		return minY;
-	}
-	
-	public double getMinZ() {
-		return minZ;
-	}
-	
-	public double getMaxX() {
-		return maxX;
-	}
-	
-	public double getMaxY() {
-		return maxY;
-	}
-	
-	public double getMaxZ() {
-		return maxZ;
-	}
-	
+
+
 	public double getSize() {
-		return size;
+		return size*2;
 	}
 }
+	

@@ -1,41 +1,68 @@
-import com.sun.j3d.utils.applet.MainFrame;
+import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Main {
-	public static void main(String[] args) throws IOException {
-		Scanner sc = new Scanner(System.in);
-		Visual visual = new Visual(600, 600);
-		new MainFrame(visual, 600, 600);
-		
-		// "s" is for "static", "m" is for "movable";
-		String sName = Utils.requestStr(sc, "First molecule");
-		System.out.println("Parsing...");
-		Parser sParser = new Parser(sName);
-		int sLen = sParser.atoms.size();
-		System.out.println("Parsed " + sLen + " atoms");
-		
-		String mName = Utils.requestStr(sc, "Second molecule");
-		System.out.println("Parsing...");
-		Parser mParser = new Parser(mName);
-		int mLen = mParser.atoms.size();
-		System.out.println("Parsed " + mLen + " atoms");
-
-		if (sLen < mLen) {
-			Parser t = sParser;
-			sParser = mParser;
-			mParser = t;
+	static Visual visual;
+	static Parser sParser = null, mParser = null;
+	static int n = 0;
+	
+	static boolean ready() {
+		return sParser != null && mParser != null && n != 0;
+	}
+	
+	static void start() {
+		try {
+			if (sParser.atoms.size() < mParser.atoms.size()) {
+				Parser t = sParser;
+				sParser = mParser;
+				mParser = t;
+			}
+			visual.drawMolecule(sParser);
+			
+			double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
+			double scale = fullSize / n;
+			Params params = new Params(n, scale);
+			
+			Fourier f = new Fourier(sParser, mParser, params, visual);
+			f.apply();
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		//visual.drawMolecule(sParser);
-		
-		int n = Utils.requestInt(sc, "Grid edge size");
-		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
-		double scale = fullSize / n;
-		Params params = new Params(n, scale);
-		
-		Fourier f = new Fourier(sParser, mParser, params, visual);
-		f.apply();
-		//Utils.placeMolecule(f.finalAnswer, mParser, scale, n);
-		//visual.drawMolecule(mParser);
+	}
+	
+	public static void main(String[] args) throws IOException {
+		visual = new Visual(new Listener() {
+			@Override
+			public void onFileSelect(boolean first, File file) {
+				visual.updateInfo(visual.err, "");
+				try {
+					if (first) {
+						sParser = new Parser(file);
+						visual.updateInfo(visual.f1, "File 1: " + file.getName());
+					} else {
+						mParser = new Parser(file);
+						visual.updateInfo(visual.f2, "File 2: " + file.getName());
+					}
+				} catch (Exception e) {
+					visual.updateInfo(visual.err, "Invalid file");
+				}
+				if (ready()) {
+					start();
+				}
+			}
+
+			@Override
+			public void onNumEntered(String num) {
+				int k = Integer.parseInt(num);
+				if (k > 0 && (k & (k - 1)) == 0) {
+					n = k;
+					if (ready()) {
+						start();
+					}
+				} else {
+					visual.updateInfo(visual.err, "Must be a power of 2");
+				}
+			}
+		});
 	}
 }

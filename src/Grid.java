@@ -20,9 +20,9 @@ public class Grid {
 		for (int i = 0; i < len; i++) {
 			Atom a = p.atoms.get(i);
 			double r = a.radius;
-			double x = a.x - p.getMinX();
-			double y = a.y - p.getMinY();
-			double z = a.z - p.getMinZ();
+			double x = a.x;
+			double y = a.y;
+			double z = a.z;
 			int li = (int) Math.ceil((x - r) / scale);
 			int lj = (int) Math.ceil((y - r) / scale);
 			int lk = (int) Math.ceil((z - r) / scale);
@@ -35,7 +35,7 @@ public class Grid {
 						double dx = ci * scale - x;
 						double dy = cj * scale - y;
 						double dz = ck * scale - z;
-						//if (dx * dx + dy * dy + dz * dz <= r * r) {
+						if (dx * dx + dy * dy + dz * dz <= r * r) {
 							if (Utils.inRange(ci, cj, ck, n, n, n)) {
 								int id = n * n * ci + n * cj + ck;
 								if (!set.contains(id)) {
@@ -43,7 +43,7 @@ public class Grid {
 									set.add(id);
 								}
 							}
-						//}
+						}
 					}
 				}
 			}
@@ -69,7 +69,6 @@ public class Grid {
 		stack.push(new Cell(corner, corner, corner));
 		TreeSet<Integer> set = new TreeSet<>();
 		set.add(0);
-		System.out.println(N * N * N + " cells");
 		int counter = 0;
 		while (!stack.isEmpty()) {
 			Cell cur = stack.peek();
@@ -97,7 +96,6 @@ public class Grid {
 				stack.pop();
 			}
 		}
-		System.out.println(counter + " visited");
 		return r;
 	}
 }

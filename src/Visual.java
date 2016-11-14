@@ -1,207 +1,204 @@
-import java.applet.Applet;
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.GraphicsConfiguration;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.io.File;
 
-import com.sun.j3d.utils.universe.*;
-import javax.media.j3d.*;
-import javax.vecmath.*;
+import javax.media.j3d.Appearance;
+import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.Canvas3D;
+import javax.media.j3d.DirectionalLight;
+import javax.media.j3d.Material;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+import javax.vecmath.Color3f;
+import javax.vecmath.Point3d;
+import javax.vecmath.Vector3f;
 
-import com.sun.j3d.utils.geometry.*;
+import com.sun.j3d.utils.geometry.Cylinder;
+import com.sun.j3d.utils.geometry.Sphere;
+import com.sun.j3d.utils.universe.SimpleUniverse;
 
 @SuppressWarnings("serial")
-public class Visual extends Applet implements KeyListener, MouseMotionListener {
-	private int w, h;
-	private float xAngle = 0;
-	private float yAngle = 0;
-	private float scale = 0.01f;
-	private TransformGroup tg = new TransformGroup();
-	private BranchGroup wrapper = new BranchGroup();
-	private BranchGroup everything = new BranchGroup();
+public class Visual extends JFrame {
+	private Object3D wrapper = new Object3D();
+	private Object3D everything = new Object3D();
+	private Object3D content = new Object3D();
 	private SimpleUniverse universe;
-	private boolean dark = false;
+	private boolean trigger = false;
 	
-	final private Color3f black = new Color3f(0, 0, 0);
-	
-	private void pos(TransformGroup tg, double x, double y, double z) {
-		Transform3D tr = new Transform3D();
-		Vector3d v = new Vector3d(x, y, z);
-		tr.setTranslation(v);
-		tg.setTransform(tr);
+	public final int f1 = 0, f2 = 1;
+	public final int err = 2; 
+	private JLabel info = new JLabel();
+	private String[] infoLines = new String[3];
+	public void updateInfo(int i, String value) {
+		infoLines[i] = value;
+		info.setText("<html>" + String.join("<br>", infoLines) + "</html>");
 	}
-	
-	public void drawMolecule(Parser p) {
-		dark = !dark;
-		wrapper.detach();
-		BranchGroup molecule = new BranchGroup();
-		molecule.setCapability(BranchGroup.ALLOW_DETACH);
+
+	public Visual(Listener listener) {
+		setLayout(new BorderLayout());
+		setSize(600, 600);
+		
+		// canvas
+		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
+		Canvas3D canvas = new Canvas3D(config);
+		Color3f light1Color = new Color3f(1f, 1f, 1f);
+		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100.0);
+		Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
+		DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
+		light1.setInfluencingBounds(bounds);
+		everything.add(light1);
+
+		// axises
+
+		Object3D xAxis = new Object3D();
+		xAxis.add(new Cylinder((float) .01, 5));
+		xAxis.rot(Math.PI / 2, 0, 0);
+		wrapper.add(xAxis);
+
+		Object3D yAxis = new Object3D();
+		yAxis.add(new Cylinder((float) .01, 5));
+		yAxis.rot(0, Math.PI / 2, 0);
+		wrapper.add(yAxis);
+
+		Object3D zAxis = new Object3D();
+		zAxis.add(new Cylinder((float) .01, 5));
+		zAxis.rot(0, 0, Math.PI / 2);
+		wrapper.add(zAxis);
+
+		content.scale(0.1);
+		wrapper.add(content);
+
+		everything.add(wrapper);
+
+		universe = new SimpleUniverse(canvas);
+		universe.getViewingPlatform().setNominalViewingTransform();
+		universe.addBranchGraph(everything.self());
+
+		canvas.addKeyListener(new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_EQUALS:
+					content.scale(content.scale() * 1.2);
+					break;
+				case KeyEvent.VK_MINUS:
+					content.scale(content.scale() / 1.2);
+					break;
+				}
+			}
+		});
+		canvas.addMouseMotionListener(new MouseMotionListener() {
+			@Override
+			public void mouseMoved(MouseEvent e) {
+				int w = canvas.getWidth(), h = canvas.getHeight();
+				double ay = Math.PI * e.getX() / w * 4;
+				double ax = Math.PI * (e.getY() - h / 2) / h * 2;
+				ax = Math.min(ax, Math.PI / 2);
+				ax = Math.max(ax, -Math.PI / 2);
+				wrapper.rot(ax, ay, 0);
+			}
+
+			@Override
+			public void mouseDragged(MouseEvent e) {
+			}
+		});
+
+		add(canvas, BorderLayout.CENTER);
+
+		// interface
+
+		for (int i = 0; i < infoLines.length; i++) {
+			infoLines[i] = "";
+		}
+		updateInfo(f1, "<i>No 1st file</i>");
+		updateInfo(f2, "<i>No 2nd file</i>");
+		JPanel side = new JPanel();
+		side.setLayout(new BorderLayout());
+		JPanel control = new JPanel();
+		control.setLayout(new GridLayout(3, 1));
+		JButton fileButton1 = new JButton("1st molecule");
+		JButton fileButton2 = new JButton("2nd molecule");
+		ActionListener onChoose = new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setCurrentDirectory(new File("data"));
+				if (chooser.showDialog(null, "Choose a pdb file") == JFileChooser.APPROVE_OPTION) {
+					File file = chooser.getSelectedFile();
+					boolean first = e.getSource() == fileButton1;
+					listener.onFileSelect(first, file);
+				}
+			}
+		};
+		fileButton1.addActionListener(onChoose);
+		fileButton2.addActionListener(onChoose);
+		control.add(fileButton1);
+		control.add(fileButton2);
+		JTextField num = new JTextField();
+		num.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				listener.onNumEntered(num.getText());
+			}
+		});
+		control.add(num);
+		side.add(control, BorderLayout.NORTH);
+		side.add(info, BorderLayout.CENTER);
+
+		add(side, BorderLayout.EAST);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setVisible(true);
+	}
+
+	public Object3D drawMolecule(Parser p) {
+		Object3D molecule = new Object3D();
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom atom = p.atoms.get(i);
 			Sphere sphere = new Sphere((float) (atom.radius));
-			float r, g, b;
-			if (dark) {
-				r = 1.f; g = 0; b = 0;
+			float r = (float) atom.r, g = (float) atom.g, b = (float) atom.b;
+			double k = 0.5;
+			if (trigger) {
+				r = (float) (1 - (1 - r * k));
+				g = (float) (1 - (1 - g * k));
+				b *= k;
 			} else {
-				r = 0; g = 1.f; b = 0;
+				r = (float) (1 - (1 - r * k));
+				g *= k;
+				b = (float) (1 - (1 - b * k));
 			}
-			Color3f color = new Color3f(r, g, b);
 			Appearance ap = new Appearance();
+			Color3f black = new Color3f(0, 0, 0);
+			Color3f color = new Color3f(r, g, b);
 			Material material = new Material(color, black, color, black, 1f);
 			ap.setMaterial(material);
 			sphere.setAppearance(ap);
-			TransformGroup cur = new TransformGroup();
-			cur.addChild(sphere);
-			pos(cur, atom.x, atom.y, atom.z);
-			molecule.addChild(cur);
+			Object3D obj = new Object3D();
+			obj.add(sphere);
+			obj.pos(atom.x, atom.y, atom.z);
+			molecule.add(obj);
 		}
-		everything.addChild(molecule);
-		universe.addBranchGraph(wrapper);
-	}
-	
-	public void drawGrid(Grid grid, Cell offset) {
-		dark = !dark;
-		wrapper.detach();
-		BranchGroup g = new BranchGroup();
-		int len = grid.cells.size();
-		for (int i = 0; i < len; i++) {
-			Cell cell = grid.cells.get(i);
-			boolean draw = false;
-			for (int j = 0; j < Utils.neighbours.length; j++) {
-				int di = Utils.neighbours[j].i;
-				int dj = Utils.neighbours[j].j;
-				int dk = Utils.neighbours[j].k;
-				if (!grid.exists(cell.i + di , cell.j + dj, cell.k + dk)) {
-					draw = true;
-					break;
-				}
-			}
-			if (!draw) continue;
-			Color3f color = new Color3f(0, 0, 1);
-			if (dark) {
-				color = new Color3f(1, 1, 0);
-			}
-			OwnCube cube = new OwnCube(0.4, color);
-			TransformGroup cur = new TransformGroup();
-			Transform3D transform = new Transform3D();
-			Vector3d vector = new Vector3d(cell.i + offset.i,
-										   cell.j + offset.j, 
-										   cell.k + offset.k);
-			transform.setTranslation(vector);
-			cur.setTransform(transform);
-			cur.addChild(cube);
-			g.addChild(cur);
-		}
-		everything.addChild(g);
-		universe.addBranchGraph(wrapper);
-	}
-	
-	public void transform() {
-		Transform3D tfx = new Transform3D();
-		tfx.rotX(yAngle);
-		Transform3D tfy = new Transform3D();
-		tfy.rotY(xAngle);
-		tfx.mul(tfy);
-		Transform3D tfs = new Transform3D();
-		tfs.setScale(scale);
-		tfx.mul(tfs);
-		tg.setTransform(tfx);
-	}
-	
-	public Visual(int w, int h) {
-		this.w = w;
-		this.h = h;
-		setLayout(new BorderLayout());
-		
-		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
-		Canvas3D canvas = new Canvas3D(config);
-		System.out.println(canvas.queryProperties().get("native.version"));
-		canvas.addKeyListener(this);
-		canvas.addMouseMotionListener(this);
-		add("Center", canvas);
-		
-		Color3f light1Color = new Color3f(1f, 1f, 1f);
-		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0,0.0,0.0), 100.0);
-		Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
-		DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
-		light1.setInfluencingBounds(bounds);
-		wrapper.addChild(light1);
-		
-		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
-		
-		// axises
-		Cylinder xAxis = new Cylinder(1, 300);
-		everything.addChild(xAxis);
-		
-		Cylinder yAxis = new Cylinder(1, 300);
-		TransformGroup yAxisTG = new TransformGroup();
-		yAxisTG.addChild(yAxis);
-		Transform3D yAxisTr = new Transform3D();
-		yAxisTr.rotZ((float) (Math.PI / 2));
-		yAxisTG.setTransform(yAxisTr);
-		everything.addChild(yAxisTG);
-		
-		Cylinder zAxis = new Cylinder(1, 300);
-		TransformGroup zAxisTG = new TransformGroup();
-		zAxisTG.addChild(zAxis);
-		Transform3D zAxisTr = new Transform3D();
-		zAxisTr.rotX((float) (Math.PI / 2));
-		zAxisTG.setTransform(zAxisTr);
-		everything.addChild(zAxisTG);
-		
-		wrapper.setCapability(BranchGroup.ALLOW_DETACH);
-		tg.addChild(everything);
-		wrapper.addChild(tg);
-		
-		universe = new SimpleUniverse(canvas);
-		universe.getViewingPlatform().setNominalViewingTransform();
-		universe.addBranchGraph(wrapper);
-		
-		transform();
-	}
-	
-	public void keyPressed(KeyEvent e) {
-		switch (e.getKeyCode()) {
-		case KeyEvent.VK_UP:
-			yAngle -= 0.03;
-			break;
-		case KeyEvent.VK_DOWN:
-			yAngle += 0.03;
-			break;
-		case KeyEvent.VK_LEFT:
-			xAngle -= 0.03;
-			break;
-		case KeyEvent.VK_RIGHT:
-			xAngle += 0.03;
-			break;
-		case KeyEvent.VK_EQUALS:
-			scale *= 1.2;
-			break;
-		case KeyEvent.VK_MINUS:
-			scale /= 1.2;
-			break;
-		case KeyEvent.VK_TAB:
-			break;
-		}
-		transform();
-	}
-	
-	public void keyReleased(KeyEvent e){
-	}
-	
-	public void keyTyped(KeyEvent e){
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent arg0) {
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		xAngle = (float) (e.getX() - w / 2) / 50;
-		
-		yAngle = (float) ((float) (e.getY() - h / 2) / (h / 3) * Math.PI / 2);
-		yAngle = (float) Math.min(yAngle, Math.PI / 2);
-		yAngle = (float) Math.max(yAngle, -Math.PI / 2);
-		transform();
+		trigger = !trigger;
+		content.add(molecule);
+		return molecule;
 	}
 }
