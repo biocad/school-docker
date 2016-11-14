@@ -11,15 +11,16 @@ import java.io.File;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
+import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.Material;
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
@@ -35,16 +36,24 @@ public class Visual extends JFrame {
 	private Object3D content = new Object3D();
 	private SimpleUniverse universe;
 	private boolean trigger = false;
-	
-	public final int f1 = 0, f2 = 1;
-	public final int err = 2; 
-	private JLabel info = new JLabel();
-	private String[] infoLines = new String[3];
-	public void updateInfo(int i, String value) {
-		infoLines[i] = value;
-		info.setText("<html>" + String.join("<br>", infoLines) + "</html>");
-	}
+	public JButton start = new JButton("Start");
 
+	public void msg(String msg) {
+		JOptionPane.showMessageDialog(null, msg);
+	}
+	
+	private void addContent() {
+		content = new Object3D();
+		content.scale(0.01);
+		content.self().setCapability(BranchGroup.ALLOW_DETACH);
+		wrapper.add(content);
+	}
+	
+	public void clear() {
+		content.self().detach();
+		addContent();
+	}
+	
 	public Visual(Listener listener) {
 		setLayout(new BorderLayout());
 		setSize(600, 600);
@@ -76,15 +85,12 @@ public class Visual extends JFrame {
 		zAxis.rot(0, 0, Math.PI / 2);
 		wrapper.add(zAxis);
 
-		content.scale(0.1);
-		wrapper.add(content);
-
 		everything.add(wrapper);
 
 		universe = new SimpleUniverse(canvas);
 		universe.getViewingPlatform().setNominalViewingTransform();
 		universe.addBranchGraph(everything.self());
-
+		
 		canvas.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
@@ -126,15 +132,10 @@ public class Visual extends JFrame {
 
 		// interface
 
-		for (int i = 0; i < infoLines.length; i++) {
-			infoLines[i] = "";
-		}
-		updateInfo(f1, "<i>No 1st file</i>");
-		updateInfo(f2, "<i>No 2nd file</i>");
 		JPanel side = new JPanel();
 		side.setLayout(new BorderLayout());
 		JPanel control = new JPanel();
-		control.setLayout(new GridLayout(3, 1));
+		control.setLayout(new GridLayout(4, 1));
 		JButton fileButton1 = new JButton("1st molecule");
 		JButton fileButton2 = new JButton("2nd molecule");
 		ActionListener onChoose = new ActionListener() {
@@ -145,7 +146,7 @@ public class Visual extends JFrame {
 				if (chooser.showDialog(null, "Choose a pdb file") == JFileChooser.APPROVE_OPTION) {
 					File file = chooser.getSelectedFile();
 					boolean first = e.getSource() == fileButton1;
-					listener.onFileSelect(first, file);
+					listener.onFileSelect(first, file, ((JButton) e.getSource()));
 				}
 			}
 		};
@@ -153,16 +154,24 @@ public class Visual extends JFrame {
 		fileButton2.addActionListener(onChoose);
 		control.add(fileButton1);
 		control.add(fileButton2);
-		JTextField num = new JTextField();
+		JComboBox<Integer> num = new JComboBox<>(new Integer[]{32, 64, 128, 256});
 		num.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				listener.onNumEntered(num.getText());
+				listener.onNumEntered((int) num.getSelectedItem());
 			}
 		});
+		listener.onNumEntered(32);
 		control.add(num);
+		start.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				listener.onStart();
+			}
+		});
+		start.setVisible(false);
+		control.add(start);
 		side.add(control, BorderLayout.NORTH);
-		side.add(info, BorderLayout.CENTER);
 
 		add(side, BorderLayout.EAST);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -178,13 +187,13 @@ public class Visual extends JFrame {
 			float r = (float) atom.r, g = (float) atom.g, b = (float) atom.b;
 			double k = 0.5;
 			if (trigger) {
-				r = (float) (1 - (1 - r * k));
-				g = (float) (1 - (1 - g * k));
+				r = (float) (1 - (1 - r) * k);
+				g = (float) (1 - (1 - g) * k);
 				b *= k;
 			} else {
-				r = (float) (1 - (1 - r * k));
+				r = (float) (1 - (1 - r) * k);
 				g *= k;
-				b = (float) (1 - (1 - b * k));
+				b = (float) (1 - (1 - b) * k);
 			}
 			Appearance ap = new Appearance();
 			Color3f black = new Color3f(0, 0, 0);

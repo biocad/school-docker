@@ -1,6 +1,8 @@
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JButton;
+
 public class Main {
 	static Visual visual;
 	static Parser sParser = null, mParser = null;
@@ -11,57 +13,56 @@ public class Main {
 	}
 	
 	static void start() {
-		try {
-			if (sParser.atoms.size() < mParser.atoms.size()) {
-				Parser t = sParser;
-				sParser = mParser;
-				mParser = t;
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					visual.clear();
+					if (sParser.atoms.size() < mParser.atoms.size()) {
+						Parser t = sParser;
+						sParser = mParser;
+						mParser = t;
+					}
+					visual.drawMolecule(sParser);
+					
+					double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
+					double scale = fullSize / n;
+					Params params = new Params(n, scale);
+					
+					Fourier f = new Fourier(sParser, mParser, params, visual);
+					f.apply();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			}
-			visual.drawMolecule(sParser);
-			
-			double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
-			double scale = fullSize / n;
-			Params params = new Params(n, scale);
-			
-			Fourier f = new Fourier(sParser, mParser, params, visual);
-			f.apply();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		}).start();
 	}
 	
 	public static void main(String[] args) throws IOException {
 		visual = new Visual(new Listener() {
 			@Override
-			public void onFileSelect(boolean first, File file) {
-				visual.updateInfo(visual.err, "");
+			public void onFileSelect(boolean first, File file, JButton b) {
 				try {
 					if (first) {
 						sParser = new Parser(file);
-						visual.updateInfo(visual.f1, "File 1: " + file.getName());
 					} else {
 						mParser = new Parser(file);
-						visual.updateInfo(visual.f2, "File 2: " + file.getName());
 					}
+					b.setText(file.getName());
 				} catch (Exception e) {
-					visual.updateInfo(visual.err, "Invalid file");
+					visual.msg("Invalid file");
 				}
-				if (ready()) {
-					start();
-				}
+				visual.start.setVisible(ready());
 			}
 
 			@Override
-			public void onNumEntered(String num) {
-				int k = Integer.parseInt(num);
-				if (k > 0 && (k & (k - 1)) == 0) {
-					n = k;
-					if (ready()) {
-						start();
-					}
-				} else {
-					visual.updateInfo(visual.err, "Must be a power of 2");
-				}
+			public void onNumEntered(int num) {
+				n = num;
+			}
+
+			@Override
+			public void onStart() {
+				start();
 			}
 		});
 	}
