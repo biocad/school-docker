@@ -2,8 +2,8 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class EGrid {
-	public ArrayList<Cell> cells = new ArrayList<>();
-	private TreeMap<Integer, Cell> map = new TreeMap<>();
+	public ArrayList<ECell> cells = new ArrayList<>();
+	private TreeMap<Integer, ECell> map = new TreeMap<>();
 	public int n;
 	
 	public EGrid(Parser p, Params params) {
@@ -33,15 +33,15 @@ public class EGrid {
 						if (innerR * innerR <= r && r <= outerR * outerR) {
 							if (Utils.inRange(ci, cj, ck, n, n, n)) {
 								int id = n * n * ci + n * cj + ck;
-								Cell c;
+								ECell c;
 								if (map.get(id) == null) {
-									c = new Cell(ci, cj, ck);
+									c = new ECell(ci, cj, ck);
 									cells.add(c);
 									map.put(id, c);
 								} else {
 									c = map.get(id);
 								}
-								c.atoms.add(a);
+								c.add(a, Math.sqrt(r));
 							}
 						}
 					}
