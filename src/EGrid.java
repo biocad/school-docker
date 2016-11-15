@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.Stack;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 public class EGrid {
 	public ArrayList<Cell> cells = new ArrayList<>();
@@ -15,6 +17,18 @@ public class EGrid {
 		}
 		return 38*r - 224;
 	}
+	
+	public double[][][] toEArray() {
+		int N = n * 2;
+		double[][][] r = new double[N][N][N];
+		int size = cells.size();
+		for (int i = 0; i < size; i++) {
+			Cell cell = cells.get(i);
+			r[n / 2 + cell.i][n / 2 + cell.j][n / 2 + cell.k] = cell.q;
+		}
+		return r;
+	}
+
 	
 	public EGrid(Parser p, Params params) {
 		double innerR = 2, outerR = 10;

@@ -63,7 +63,22 @@ public class Utils {
 		}
 	}
 	
-
+	public static boolean checkPosition(double[] answer, Parser sParser,  Parser mParser, Params params){
+		int n = params.N;
+		EGrid sEGrid = new EGrid(sParser, params);
+		EGrid mEGrid = new EGrid(mParser, params);
+		double[][][] sMEGrid = sEGrid.toEArray();
+		double[][][] mMEGrid = mEGrid.toEArray();
+		double mult = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					mult += sMEGrid[i][j][k]*mMEGrid[i+(int)answer[1]][j+(int)answer[2]][k+(int)answer[3]];
+				}
+			}
+		}
+		return true;
+	}
 
 	public static void placeMolecule(double[] answer, Parser p, double scale, int n) {
 		rotate(p.atoms, answer[4], answer[5], answer[6], p.getSize());

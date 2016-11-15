@@ -20,7 +20,7 @@ public class Parser {
 		}
 	}
 	
-	public double findCharge(String s){
+	public static double findCharge(String s){
 		double charge = 0;
 		String residue = s.substring(17, 20).trim();
 		String position = s.substring(14, 16).trim();

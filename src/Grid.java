@@ -19,7 +19,7 @@ public class Grid {
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom a = p.atoms.get(i);
-			double r = a.radius;
+			double r = 2*a.radius;
 			double x = a.x;
 			double y = a.y;
 			double z = a.z;

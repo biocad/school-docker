@@ -69,7 +69,7 @@ public class Atom {
 			this.r = 0f;
 			this.g = 1f;
 			this.b = 0f;
-			System.out.print("YES!" + charge + " " + name);
+			System.out.println("YES!" + charge + " " + name);
 			break;
 		}
 	}
