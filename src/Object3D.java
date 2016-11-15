@@ -7,12 +7,15 @@ import javax.vecmath.Vector3d;
 public class Object3D {
 	private BranchGroup bg;
 	private TransformGroup tg;
+	private Transform3D t;
 	private double x, y, z, ax, ay, az;
 	private double scale = 1;
-	
+
 	public Object3D() {
 		bg = new BranchGroup();
 		tg = new TransformGroup();
+		t = new Transform3D();
+		bg.setCapability(BranchGroup.ALLOW_DETACH);
 		tg.setCapability(TransformGroup.ALLOW_TRANSFORM_WRITE);
 		tg.setCapability(BranchGroup.ALLOW_DETACH);
 		tg.setCapability(BranchGroup.ALLOW_AUTO_COMPUTE_BOUNDS_READ);
@@ -32,19 +35,19 @@ public class Object3D {
 		tg.setCapability(BranchGroup.ALLOW_PICKABLE_READ);
 		bg.addChild(tg);
 	}
-	
-	public void pos(double x, double y, double z) {
-		Transform3D t = new Transform3D();
+
+	public void shift(double x, double y, double z) {
+		Transform3D temp = new Transform3D();
 		Vector3d v = new Vector3d(x, y, z);
-		t.setTranslation(v);
+		temp.set(v);
+		t.mul(temp);
 		tg.setTransform(t);
-		this.x = x;
-		this.y = y;
-		this.z = z;
+		this.x += x;
+		this.y += y;
+		this.z += z;
 	}
-	
+
 	public void rot(double ax, double ay, double az) {
-		Transform3D t = new Transform3D();
 		t.rotX(ax);
 		Transform3D temp = new Transform3D();
 		temp.rotY(ay);
@@ -57,52 +60,50 @@ public class Object3D {
 		this.ay = ay;
 		this.az = az;
 	}
-	
+
 	public void scale(double scale) {
-		Transform3D t = new Transform3D();
 		t.setScale(scale);
 		tg.setTransform(t);
 		this.scale = scale;
 	}
-	
+
 	public double scale() {
 		return scale;
 	}
-	
+
 	public double x() {
 		return x;
 	}
-	
+
 	public double y() {
 		return y;
 	}
-	
+
 	public double z() {
 		return z;
 	}
-	
+
 	public double ax() {
 		return ax;
 	}
-	
+
 	public double ay() {
 		return ay;
 	}
-	
+
 	public double az() {
 		return az;
 	}
-	
+
 	public void add(Node node) {
 		tg.addChild(node);
 	}
-	
+
 	public void add(Object3D obj) {
 		tg.addChild(obj.self());
 	}
-	
+
 	public BranchGroup self() {
 		return bg;
 	}
 }
-

@@ -13,28 +13,43 @@ public class Main {
 	}
 	
 	static void start() {
+		visual.clear();
+		if (sParser.atoms.size() < mParser.atoms.size()) {
+			Parser t = sParser;
+			sParser = mParser;
+			mParser = t;
+		}
+		visual.shiftMolecules(-sParser.getSize() / 2);
+		visual.drawMolecule(sParser);
+		
+		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
+		double scale = fullSize / n;
+		Params params = new Params(n, scale);
+		Fourier f = new Fourier(sParser, mParser, params, visual);
+		
+		visual.showProgressBar();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {
-					visual.clear();
-					if (sParser.atoms.size() < mParser.atoms.size()) {
-						Parser t = sParser;
-						sParser = mParser;
-						mParser = t;
+				f.apply();
+				visual.hideProgressBar();
+			}
+		}).start();
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true) {
+					double p = f.getProgress();
+					visual.setProgress(p);
+					if (p == 1) {
+						break;
 					}
-					visual.drawMolecule(sParser);
-					
-					double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
-					double scale = fullSize / n;
-					Params params = new Params(n, scale);
-					
-					Fourier f = new Fourier(sParser, mParser, params, visual);
-					f.apply();
-					visual.shiftContent(-2*sParser.getSize());
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+					try {
+						Thread.sleep(500);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}				
 			}
 		}).start();
 	}

@@ -11,7 +11,6 @@ import java.io.File;
 
 import javax.media.j3d.Appearance;
 import javax.media.j3d.BoundingSphere;
-import javax.media.j3d.BranchGroup;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.Material;
@@ -21,6 +20,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.vecmath.Color3f;
 import javax.vecmath.Point3d;
 import javax.vecmath.Vector3f;
@@ -34,6 +34,8 @@ public class Visual extends JFrame {
 	private Object3D wrapper = new Object3D();
 	private Object3D everything = new Object3D();
 	private Object3D content = new Object3D();
+	private Object3D molecules = new Object3D();
+	private JProgressBar pb = new JProgressBar();
 	private SimpleUniverse universe;
 	private boolean trigger = false;
 	public JButton start = new JButton("Start");
@@ -41,23 +43,29 @@ public class Visual extends JFrame {
 	public void msg(String msg) {
 		JOptionPane.showMessageDialog(null, msg);
 	}
-	
-	private void addContent() {
-		content = new Object3D();
-		content.scale(0.01);
-		content.self().setCapability(BranchGroup.ALLOW_DETACH);
-		wrapper.add(content);
-	}
-	
+
 	public void clear() {
-		content.self().detach();
-		addContent();
+		molecules.self().detach();
+		molecules = new Object3D();
+		content.add(molecules);
 	}
 	
+	public void showProgressBar() {
+		pb.setVisible(true);
+	}
+	
+	public void setProgress(double p) {
+		pb.setValue((int) (p * 100));
+	}
+	
+	public void hideProgressBar() {
+		pb.setVisible(false);
+	}
+
 	public Visual(Listener listener) {
 		setLayout(new BorderLayout());
 		setSize(600, 600);
-		
+
 		// canvas
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		Canvas3D canvas = new Canvas3D(config);
@@ -84,13 +92,18 @@ public class Visual extends JFrame {
 		zAxis.add(new Cylinder((float) .01, 5));
 		zAxis.rot(0, 0, Math.PI / 2);
 		wrapper.add(zAxis);
+		
+		content = new Object3D();
+		content.scale(0.01);
+		content.add(molecules);
+		wrapper.add(content);
 
 		everything.add(wrapper);
 
 		universe = new SimpleUniverse(canvas);
 		universe.getViewingPlatform().setNominalViewingTransform();
 		universe.addBranchGraph(everything.self());
-		
+
 		canvas.addKeyListener(new KeyListener() {
 			@Override
 			public void keyTyped(KeyEvent e) {
@@ -135,7 +148,7 @@ public class Visual extends JFrame {
 		JPanel side = new JPanel();
 		side.setLayout(new BorderLayout());
 		JPanel control = new JPanel();
-		control.setLayout(new GridLayout(4, 1));
+		control.setLayout(new GridLayout(5, 1));
 		JButton fileButton1 = new JButton("1st molecule");
 		JButton fileButton2 = new JButton("2nd molecule");
 		ActionListener onChoose = new ActionListener() {
@@ -154,7 +167,7 @@ public class Visual extends JFrame {
 		fileButton2.addActionListener(onChoose);
 		control.add(fileButton1);
 		control.add(fileButton2);
-		JComboBox<Integer> num = new JComboBox<>(new Integer[]{32, 64, 128, 256});
+		JComboBox<Integer> num = new JComboBox<>(new Integer[] { 32, 64, 128, 256 });
 		num.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -171,20 +184,21 @@ public class Visual extends JFrame {
 		});
 		start.setVisible(false);
 		control.add(start);
+		pb.setMinimum(0);
+		pb.setMaximum(100);
+		pb.setVisible(false);
+		control.add(pb);
 		side.add(control, BorderLayout.NORTH);
 
 		add(side, BorderLayout.EAST);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 	}
-	
-	public void shiftContent(double shift){
-		double x = content.x();
-		double y = content.y();
-		double z = content.z();
-		content.pos(x+shift, y+shift, z+shift);
+
+	public void shiftMolecules(double shift) {
+		molecules.shift(shift, shift, shift);
 	}
-	
+
 	public Object3D drawMolecule(Parser p) {
 		Object3D molecule = new Object3D();
 		int len = p.atoms.size();
@@ -210,11 +224,11 @@ public class Visual extends JFrame {
 			sphere.setAppearance(ap);
 			Object3D obj = new Object3D();
 			obj.add(sphere);
-			obj.pos(atom.x, atom.y, atom.z);
+			obj.shift(atom.x, atom.y, atom.z);
 			molecule.add(obj);
 		}
 		trigger = !trigger;
-		content.add(molecule);
+		molecules.add(molecule);
 		return molecule;
 	}
 }

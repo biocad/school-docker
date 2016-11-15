@@ -15,6 +15,11 @@ public class Fourier {
 	public Params params;
 	public Visual visual;
 	public double scale;
+	private double progress = 0;
+	
+	public double getProgress() {
+		return progress;
+	}
 
 	private double[][][] replaceInnerValues(Grid g, double value) {
 		int[][][] grid = g.toArray();
@@ -123,7 +128,7 @@ public class Fourier {
 		return finalAnswer;
 	}
 	
-	public Fourier(Parser sParser, Parser mParser, Params params, Visual visual) throws IOException {
+	public Fourier(Parser sParser, Parser mParser, Params params, Visual visual) {
 		this.sParser = sParser;
 		this.mParser = mParser;
 		this.params = params;
@@ -205,7 +210,7 @@ public class Fourier {
 					answer[numberOfAnswer][5] = phiy;
 					answer[numberOfAnswer][6] = phiz;
 					done++;
-					System.out.println(done + "/" + amountOfPositions);
+					progress = 2. * done / amountOfPositions;
 				}
 			}
 		}
