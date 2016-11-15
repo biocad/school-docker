@@ -1,6 +1,5 @@
 
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class Utils {
 	public static Cell[] neighbours = new Cell[]{
@@ -30,26 +29,6 @@ public class Utils {
 			ans = Math.min(ans, a[i]);
 		}
 		return ans;
-	}
-
-	public static String requestStr(Scanner sc, String sign) {
-		System.out.print(sign + ": ");
-		return sc.next();
-	}
-
-	public static int requestInt(Scanner sc, String sign) {
-		System.out.print(sign + ": ");
-		return sc.nextInt();
-	}
-
-	public static void shift (ArrayList<Atom> atoms, double size) {
-		int len = atoms.size();
-
-		for (int i = 0; i < len; i++) {
-			double x = atoms.get(i).x - size;
-			double y = atoms.get(i).y - size;
-			double z = atoms.get(i).z - size;
-		}
 	}
 	
 	public static void rotate(ArrayList<Atom> atoms, double phix, double phiy, double phiz, double size) {

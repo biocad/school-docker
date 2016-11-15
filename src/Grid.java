@@ -69,7 +69,6 @@ public class Grid {
 		stack.push(new Cell(corner, corner, corner));
 		TreeSet<Integer> set = new TreeSet<>();
 		set.add(0);
-		int counter = 0;
 		while (!stack.isEmpty()) {
 			Cell cur = stack.peek();
 			boolean pop = true;
@@ -87,7 +86,6 @@ public class Grid {
 							stack.push(next);
 							set.add(id);
 							pop = false;
-							counter++;
 						}
 					}
 				}
