@@ -2,12 +2,22 @@ import java.util.ArrayList;
 import java.util.TreeMap;
 
 public class EGrid {
-	public ArrayList<ECell> cells = new ArrayList<>();
-	private TreeMap<Integer, ECell> map = new TreeMap<>();
+	public ArrayList<Cell> cells = new ArrayList<>();
+	private TreeMap<Integer, Cell> map = new TreeMap<>();
 	public int n;
 	
+	public double E(double r){
+		if (r <= 6){
+			return 4;
+		}
+		if (r >= 8){
+			return 80;
+		}
+		return 38*r - 224;
+	}
+	
 	public EGrid(Parser p, Params params) {
-		double innerR = 2, outerR = 5;
+		double innerR = 2, outerR = 10;
 		int n = params.N;
 		double scale = params.SCALE;
 		this.n = n;
@@ -33,15 +43,16 @@ public class EGrid {
 						if (innerR * innerR <= r && r <= outerR * outerR) {
 							if (Utils.inRange(ci, cj, ck, n, n, n)) {
 								int id = n * n * ci + n * cj + ck;
-								ECell c;
+								Cell c;
 								if (map.get(id) == null) {
-									c = new ECell(ci, cj, ck);
+									c = new Cell(ci, cj, ck);
 									cells.add(c);
 									map.put(id, c);
 								} else {
 									c = map.get(id);
 								}
-								c.add(a, Math.sqrt(r));
+								r = Math.sqrt(r);
+								c.q += a.charge/(r*E(r));
 							}
 						}
 					}

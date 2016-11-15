@@ -2,7 +2,7 @@
 
 public class Atom {
 	
-	private double t = 2;
+	private double t = 1.0;
 	final double R_H = t*1f;
 	final double R_C = t*1.4166666666f; 
 	final double R_N = t*1.2916666666f; 
@@ -69,7 +69,7 @@ public class Atom {
 			this.r = 0f;
 			this.g = 1f;
 			this.b = 0f;
-			System.out.print("YES!");
+			System.out.print("YES!" + charge + " " + name);
 			break;
 		}
 	}

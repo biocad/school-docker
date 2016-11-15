@@ -1,9 +1,0 @@
-ATOM      1  N   MET A  84           0       0       0  1.00 90.37           C  
-ATOM      2  N   MET A  84        1.47       0       0  1.00 90.37           C  
-ATOM      3  N   MET A  84           0    1.47       0  1.00 90.37           C  
-ATOM      4  N   MET A  84        1.47    1.47       0  1.00 90.37           C  
-ATOM      1  N   MET A  84           0       0    1.47  1.00 90.37           C  
-ATOM      2  N   MET A  84        1.47       0    1.47  1.00 90.37           C  
-ATOM      3  N   MET A  84           0    1.47    1.47  1.00 90.37           C  
-ATOM      4  N   MET A  84        1.47    1.47    1.47  1.00 90.37           C  
-END                                                                             

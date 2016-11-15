@@ -57,7 +57,6 @@ public class Parser {
 		String s = in.nextLine();
 		while (!s.substring(0, 3).equals("END")) {
 			if (s.substring(0, 4).equals("ATOM") || s.substring(0, 6).equals("HETATM")) {
-				System.out.println(s.substring(0, 4));
 				char c = s.charAt(10);
 				if (c >= '0' && c <= '9') {
 					double x = Double.parseDouble(s.substring(30, 38).trim());
