@@ -25,7 +25,6 @@ public class Main {
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
 		Params params = new Params(n, scale);
-		EGrid egrid = new EGrid(sParser, params);
 		Fourier f = new Fourier(sParser, mParser, params, visual);
 		
 		visual.showProgressBar();
