@@ -38,7 +38,7 @@ public class Parser {
 				return charge;
 			case "N":
 				charge = 0.5;
-				if ((residue.equals("LYS") && position.substring(14,15).equals("Z")) || position.equals("")){
+				if ((residue.equals("LYS") && position.equals("Z")) || position.equals("")){
 					charge = 1;
 				}
 				if ( (residue.equals("PRO"))){

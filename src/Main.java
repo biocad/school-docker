@@ -66,6 +66,7 @@ public class Main {
 					}
 					b.setText(file.getName());
 				} catch (Exception e) {
+					e.printStackTrace();
 					visual.msg("Invalid file");
 				}
 				visual.start.setVisible(ready());
