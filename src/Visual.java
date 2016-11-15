@@ -177,7 +177,14 @@ public class Visual extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setVisible(true);
 	}
-
+	
+	public void shiftContent(double shift){
+		double x = content.x();
+		double y = content.y();
+		double z = content.z();
+		content.pos(x+shift, y+shift, z+shift);
+	}
+	
 	public Object3D drawMolecule(Parser p) {
 		Object3D molecule = new Object3D();
 		int len = p.atoms.size();

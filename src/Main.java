@@ -31,6 +31,7 @@ public class Main {
 					
 					Fourier f = new Fourier(sParser, mParser, params, visual);
 					f.apply();
+					visual.shiftContent(-2*sParser.getSize());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

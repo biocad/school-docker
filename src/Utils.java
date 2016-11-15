@@ -42,6 +42,16 @@ public class Utils {
 		return sc.nextInt();
 	}
 
+	public static void shift (ArrayList<Atom> atoms, double size) {
+		int len = atoms.size();
+
+		for (int i = 0; i < len; i++) {
+			double x = atoms.get(i).x - size;
+			double y = atoms.get(i).y - size;
+			double z = atoms.get(i).z - size;
+		}
+	}
+	
 	public static void rotate(ArrayList<Atom> atoms, double phix, double phiy, double phiz, double size) {
 		int len = atoms.size();
 		
