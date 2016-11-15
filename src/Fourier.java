@@ -221,7 +221,7 @@ public class Fourier {
 		Grid g = new Grid(parser, params);
 		//visual.drawGrid(sGrid, new Cell(-n, -n, -n));
 		//visual.drawGrid(g, new Cell((int) (finalAnswer[1]-n), (int) (finalAnswer[2]-n), (int) (finalAnswer[3])-n));
-		Utils.placeMolecule(finalAnswer, mParser, scale, n);
-		visual.drawMolecule(mParser);
+		Utils.placeMolecule(finalAnswer, parser, scale, n);
+		visual.drawMolecule(parser);
 	}
 }
