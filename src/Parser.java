@@ -71,6 +71,37 @@ public class Parser {
 		in.close();
 	}
 	
+	public void rotate(double ax, double ay, double az) {
+		int len = atoms.size();
+		
+		for (int i = 0; i < len; i++) {
+			Atom a = atoms.get(i);
+			double x = a.x - shift;
+			double y = a.y - shift;
+			double z = a.z - shift;
+			 a.y = Math.cos(ax) * y - Math.sin(ax) * z;
+			 a.z = Math.sin(ax) * y + Math.cos(ax) * z;
+
+			 x = a.x;
+			 y = a.y;
+			 z = a.z;
+			
+			 a.x = Math.cos(ay) * x + Math.sin(ay) * z;
+			 a.z = -Math.sin(ay) * x + Math.cos(ay) * z;
+			 
+			 x = a.x;
+			 y = a.y;
+			 z = a.z;
+			
+			 a.x = Math.cos(az) * x - Math.sin(az) * y;
+			 a.y = Math.sin(az) * x + Math.cos(az) * y;
+
+			 a.x += shift;
+			 a.y += shift;
+			 a.z += shift;
+		}
+	}
+	
 	public double getShift() {
 		return shift;
 	}

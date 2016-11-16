@@ -1,13 +1,6 @@
 
 
-public class Atom {
-	public final String H = "H";
-	public final String C = "C";
-	public final String N = "N";
-	public final String O = "O";
-	public final String S = "S";
-	public final String P = "P";
-	
+public class Atom {	
 	private double t = 2;
 	final double R_H = t*1f;
 	final double R_C = t*1.4166666666f; 
@@ -32,37 +25,37 @@ public class Atom {
 		this.z = z;
 		
 		switch (name) {
-		case H:
+		case "H":
 			this.radius = R_H;
 			this.r = 1f;
 			this.g = 1f;
 			this.b = 1f;
 			break;
-		case C:
+		case "C":
 			this.radius = R_C;
 			this.r = .5f;
 			this.g = .5f;
 			this.b = .5f;
 			break;
-		case S:
+		case "S":
 			this.radius = R_S;
 			this.r = 1f;
 			this.g = 1f;
 			this.b = 0f;
 			break;
-		case O:
+		case "O":
 			this.radius = R_O;
 			this.r = 1f;
 			this.g = 0f;
 			this.b = 0f;
 			break;
-		case P:
+		case "P":
 			this.radius = R_P;
 			this.r = 1f;
 			this.g = .5f;
 			this.b = 0f;
 			break;
-		case N:
+		case "N":
 			this.radius = R_N;
 			this.r = 0f;
 			this.g = 0f;

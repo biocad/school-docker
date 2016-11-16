@@ -19,7 +19,6 @@ public class Main {
 			sParser = mParser;
 			mParser = t;
 		}
-		
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
 		

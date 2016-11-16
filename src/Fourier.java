@@ -1,20 +1,15 @@
-
-
-import java.io.IOException;
 import java.util.*;
 import org.jtransforms.fft.*;
 
 public class Fourier {
-	public int sizeOfAnswer = 7;
-	public double dangle = Math.PI/2;
-	public int amountOfPositions = (int) Math.pow(2 * Math.PI / dangle, 3);
+	private final double dangle = Math.PI / 2;
+	private int amountOfPositions = (int) Math.pow(2 * Math.PI / dangle, 3) / 2;
+	private ArrayList<Answer> answers = new ArrayList<>();
 	private double largeNegativeValue = -1e6;
 	private double smallPositiveValue = 1e-3;
-	public Parser sParser;
-	public Parser mParser;
-	public Params params;
-	public Visual visual;
-	public double scale;
+	private Parser sParser, mParser;
+	private Params params;
+	private Visual visual;
 	private double progress = 0;
 	
 	public double getProgress() {
@@ -95,16 +90,17 @@ public class Fourier {
 		}
 	}
 
-	private double[] findPeak(double[][][] grid, int n) {
-		double[] answer = new double[sizeOfAnswer];
+	private Answer findPeak(double[][][] grid) {
+		int n = grid.length;
+		Answer answer = new Answer();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int k = 0; k < n; k++) {
-					if (answer[0] < grid[i][j][k]) {
-						answer[0] = grid[i][j][k];
-						answer[1] = i;
-						answer[2] = j;
-						answer[3] = k;
+					if (answer.fitness < grid[i][j][k]) {
+						answer.fitness = grid[i][j][k];
+						answer.i = i;
+						answer.j = j;
+						answer.k = k;
 					}
 				}
 			}
@@ -112,19 +108,17 @@ public class Fourier {
 		return answer;
 	}
 
-	private double[] findFinalAnswer(double[][] answer) {
-		double[] finalAnswer = new double[sizeOfAnswer];
-		for (int i = 0; i < amountOfPositions; i++) {
-			if (finalAnswer[0] < answer[i][0]) {
-				finalAnswer[0] = answer[i][0];
-				finalAnswer[1] = answer[i][1];
-				finalAnswer[2] = answer[i][2];
-				finalAnswer[3] = answer[i][3];
-				finalAnswer[4] = answer[i][4];
-				finalAnswer[5] = answer[i][5];
-				finalAnswer[6] = answer[i][6];
+	private Answer findFinalAnswer() {
+		Answer finalAnswer = new Answer();
+		for (int i = 0; i < answers.size(); i++) {
+			if (finalAnswer.fitness < answers.get(i).fitness) {
+				finalAnswer = answers.get(i);
 			}
 		}
+		double n = params.N;
+		finalAnswer.i -= finalAnswer.i > n ? 2 * n : 0;
+		finalAnswer.j -= finalAnswer.j > n ? 2 * n : 0;
+		finalAnswer.k -= finalAnswer.k > n ? 2 * n : 0;
 		return finalAnswer;
 	}
 	
@@ -133,7 +127,6 @@ public class Fourier {
 		this.mParser = mParser;
 		this.params = params;
 		this.visual = visual;
-		this.scale = params.SCALE;
 	}
 	
 //	public void Approach(double sAx, double sAy, double sAz, Parser mParser, int n, DoubleFFT_3D fftDo, double[][][] staticMoleculeGridFT){
@@ -172,61 +165,54 @@ public class Fourier {
 //	}
 	
 	public void apply() {
-		double[][] answer = new double[amountOfPositions][sizeOfAnswer];
 		int n = params.N;
 		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
 		// generation of grid and gridFT for the bigger molecule
 		Grid sGrid = new Grid(sParser, params);
-		double[][][] staticMoleculeGrid = replaceInnerValues(sGrid, smallPositiveValue);
-		double[][][] staticMoleculeGridFT = new double[2 * n][2 * n][4 * n];
-		copy(staticMoleculeGrid, staticMoleculeGridFT);
-		fftDo.realForwardFull(staticMoleculeGridFT);
+		double[][][] sArr = replaceInnerValues(sGrid, smallPositiveValue);
+		double[][][] sFT = new double[2 * n][2 * n][4 * n];
+		copy(sArr, sFT);
+		fftDo.realForwardFull(sFT);
 		// beginning of rotations
 		int done = 0;
-		for (int i = 0; i < Math.PI / dangle; i++) {
-			for (int j = 0; j < 2 * Math.PI / dangle; j++) {
-				for (int k = 0; k < 2 * Math.PI / dangle; k++) {
+		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
+			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
+				for (double az = 0; az < 2 * Math.PI; az += dangle) {
 					Parser parser = mParser.clone();
-					// rotation of molecule
-					double phix = dangle * i;
-					double phiy = dangle * j;
-					double phiz = dangle * k;
-					Utils.rotate(parser.atoms, phix, phiy, phiz, parser.getShift());
-					//parser.dropOnAxisses();
+					parser.rotate(ax, ay, az);
 					// generation of grid and gridFT for the smaller molecule
-					Grid g1 = new Grid(parser, params);
-					double[][][] grid1 = replaceInnerValues(g1, largeNegativeValue);
-					double[][][] grid1FT = new double[2 * n][2 * n][4 * n];
-					double[][][] newGridC = new double[2 * n][2 * n][4 * n];
-					copy(grid1, grid1FT);
-					fftDo.realForwardFull(grid1FT);
-					multiply(newGridC, grid1FT, staticMoleculeGridFT, 2 * n);
-					makeInversable(newGridC, 2 * n);
-					fftDo.realInverse(newGridC, true);
-					int numberOfAnswer = (int) (i * (2 * Math.PI / dangle) * (2 * Math.PI / dangle)
-							+ j * (2 * Math.PI / dangle) + k);
-					answer[numberOfAnswer] = findPeak(newGridC, n);
-					answer[numberOfAnswer][4] = phix;
-					answer[numberOfAnswer][5] = phiy;
-					answer[numberOfAnswer][6] = phiz;
+					Grid mGrid = new Grid(parser, params);
+					double[][][] mArr = replaceInnerValues(mGrid, largeNegativeValue);
+					double[][][] mFT = new double[2 * n][2 * n][4 * n];
+					double[][][] ft = new double[2 * n][2 * n][4 * n];
+					copy(mArr, mFT);
+					fftDo.realForwardFull(mFT);
+					multiply(ft, mFT, sFT, 2 * n);
+					makeInversable(ft, 2 * n);
+					fftDo.realInverse(ft, true);
+					Answer answer = findPeak(ft);
+					answer.ax = ax;
+					answer.ay = ay;
+					answer.az = az;
+					answers.add(answer);
 					done++;
 					progress = 2. * done / amountOfPositions;
 				}
 			}
 		}
 		Parser parser = mParser.clone();
-		for (int i = 0; i < parser.atoms.size(); i++) {
-			System.out.println(parser.atoms.get(i).x);
+		Answer finalAnswer = findFinalAnswer();
+		for (int i = 0; i < answers.size(); i++) {
+			System.out.println(answers.get(i));
 		}
-		double[] finalAnswer = findFinalAnswer(answer);
-		System.out.println(Arrays.toString(finalAnswer));
-		Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getShift());
+		//Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getShift());
+		parser.rotate(finalAnswer.ax, finalAnswer.ay, finalAnswer.az);
 		Cell d = new Cell(0, 0, 0);
 		visual.drawGrid(sGrid, d);
 		Grid g = new Grid(parser, params);
-		d.i = (int) finalAnswer[1];
-		d.j = (int) finalAnswer[2];
-		d.k = (int) finalAnswer[3];
+		d.i = finalAnswer.i;
+		d.j = finalAnswer.j;
+		d.k = finalAnswer.k;
 		visual.drawGrid(g, d);
 		//Utils.placeMolecule(finalAnswer, mParser, scale, n);
 		//visual.drawMolecule(mParser);
