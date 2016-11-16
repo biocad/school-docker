@@ -24,8 +24,10 @@ public class Main {
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
 		Params params = new Params(n, scale);
-		
+
 		visual.shiftMolecules(-sParser.getShift());
+		visual.shiftGrids(-sParser.getShift() / scale);
+		
 		visual.drawMolecule(sParser);
 		Grid sGrid = new Grid(sParser, params);
 		visual.drawGrid(sGrid, new Cell(0, 0, 0));

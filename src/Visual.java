@@ -15,6 +15,7 @@ import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.Material;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -181,7 +182,8 @@ public class Visual extends JFrame {
 				listener.onNumEntered((int) num.getSelectedItem());
 			}
 		});
-		listener.onNumEntered(32);
+		//listener.onNumEntered(32);
+		num.getActionListeners()[0].actionPerformed(null);
 		control.add(num);
 		start.addActionListener(new ActionListener() {
 			@Override
@@ -195,6 +197,34 @@ public class Visual extends JFrame {
 		pb.setMaximum(100);
 		pb.setVisible(false);
 		control.add(pb);
+		JCheckBox showMolecules = new JCheckBox("Show molecules");
+		JCheckBox showGrids = new JCheckBox("Show grids");
+		showMolecules.setSelected(true);
+		showGrids.setSelected(true);
+		showMolecules.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (showMolecules.isSelected()) {
+					molecules.shift(1e6, 0, 0);
+				} else {
+					molecules.shift(-1e6, 0, 0);
+				}
+			}
+		});
+		showGrids.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (showGrids.isSelected()) {
+					grids.shift(1e6, 0, 0);
+				} else {
+					grids.shift(-1e6, 0, 0);
+				}
+			}
+		});
+		showMolecules.getActionListeners()[0].actionPerformed(null);
+		showGrids.getActionListeners()[0].actionPerformed(null);
+		control.add(showMolecules);
+		control.add(showGrids);
 		side.add(control, BorderLayout.NORTH);
 
 		add(side, BorderLayout.EAST);
@@ -204,6 +234,10 @@ public class Visual extends JFrame {
 
 	public void shiftMolecules(double shift) {
 		molecules.shift(shift, shift, shift);
+	}
+
+	public void shiftGrids(double shift) {
+		grids.shift(shift, shift, shift);
 	}
 
 	public Object3D drawMolecule(Parser p) {
