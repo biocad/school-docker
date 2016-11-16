@@ -26,6 +26,7 @@ public class Atom {
 		this.y = y;
 		this.z = z;
 		this.q = q;
+//		System.out.println(name + " with " + q);
 		
 		switch (name) {
 		case "H":

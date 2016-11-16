@@ -2,14 +2,14 @@ import java.util.*;
 import org.jtransforms.fft.*;
 
 public class Fourier {
-	private final double dangle = Math.PI/3;
+	private final double dangle = Math.PI / 3;
 	private ArrayList<Answer> answers = new ArrayList<>();
 	private double largeNegativeValue = -1e6;
 	private double smallPositiveValue = 1e-3;
 	private Parser sParser, mParser;
 	private Params params;
 	private double progress = 0;
-	
+
 	public double getProgress() {
 		return progress;
 	}
@@ -31,7 +31,7 @@ public class Fourier {
 		}
 		return r;
 	}
-	
+
 	private void copy(double[][][] grid, double[][][] gridFT) {
 		int n = grid.length;
 		for (int i = 0; i < n; i++) {
@@ -106,12 +106,40 @@ public class Fourier {
 		return answer;
 	}
 
+	private boolean checkPosition(Answer answer, Parser sParser, Parser mParser, Params params) {
+		int n = params.N;
+		EGrid sEGrid = new EGrid(sParser, params);
+		EGrid mEGrid = new EGrid(mParser, params);
+		double[][][] sMEGrid = sEGrid.toEArray();
+		double[][][] mMEGrid = mEGrid.toEArray();
+		double mult = 0;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					if (Utils.inRange(i + answer.i, j + answer.j, k + answer.k, n, n, n)){
+						mult += sMEGrid[i][j][k] + mMEGrid[i + answer.i][j + answer.j][k + answer.k];
+					}
+				}
+			}
+		}
+		System.out.println(mult);
+		if (mult < 0){
+			return false;
+		}else{
+			return true;
+		}
+	}
+
 	private Answer findFinalAnswer() {
-		Answer finalAnswer = answers.get(0);
-		
-		
-		
-		
+		int len = answers.size();
+		int a = 0;
+		for (int i = 0; i < len; i++) {
+			if (checkPosition(answers.get(i), sParser, mParser, params)) {
+				a = i;
+				break;
+			}
+		}
+		Answer finalAnswer = answers.get(a);
 		// !important
 		double n = params.N;
 		finalAnswer.i -= finalAnswer.i > n ? 2 * n : 0;
@@ -119,48 +147,49 @@ public class Fourier {
 		finalAnswer.k -= finalAnswer.k > n ? 2 * n : 0;
 		return finalAnswer;
 	}
-	
+
 	public Fourier(Parser sParser, Parser mParser, Params params) {
 		this.sParser = sParser;
 		this.mParser = mParser;
 		this.params = params;
 	}
-	
-//	public void Approach(double sAx, double sAy, double sAz, Parser mParser, int n, DoubleFFT_3D fftDo, double[][][] staticMoleculeGridFT){
-//		int done = 0;
-//		for (int i = 0; i < angleSteps; i++) {
-//			for (int j = 0; j < angleSteps; j++) {
-//				for (int k = 0; k < angleSteps; k++) {
-//					Parser parser = mParser.clone();
-//					// rotation of molecule
-//					double phix = sAx + angle/angleSteps * i;
-//					double phiy = sAy + angle/angleSteps * j;
-//					double phiz = sAz + angle/angleSteps * k;
-//					Utils.rotate(parser.atoms, phix, phiy, phiz, parser.getSize());
-//					// generation of grid and gridFT for the smaller molecule
-//					Grid mGrid = new Grid(parser, params);
-//					double[][][] mgrid = replaceInnerValues(mGrid, largeNegativeValue);
-//					double[][][] mgridFT = new double[2 * n][2 * n][4 * n];
-//					double[][][] newGridC = new double[2 * n][2 * n][4 * n];
-//					copy(mgrid, mgridFT);
-//					fftDo.realForwardFull(mgridFT);
-//					multiply(newGridC, mgridFT, staticMoleculeGridFT, 2*n);
-//					makeInversable(newGridC, 2*n);
-//					fftDo.realInverse(newGridC, true);
-//					int numberOfAnswer = (int) (i * (angleSteps) * (angleSteps)
-//							+ j * (angleSteps) + k);
-//					answer[numberOfAnswer] = findPeak(newGridC, 2*n);
-//					answer[numberOfAnswer][4] = phix;
-//					answer[numberOfAnswer][5] = phiy;
-//					answer[numberOfAnswer][6] = phiz;
-//					System.out.println(Arrays.toString(answer[numberOfAnswer]));
-//					done++;
-//					System.out.println(done + "/" + amountOfPositions);
-//				}
-//			}
-//		}
-//	}
-	
+
+	// public void Approach(double sAx, double sAy, double sAz, Parser mParser,
+	// int n, DoubleFFT_3D fftDo, double[][][] staticMoleculeGridFT){
+	// int done = 0;
+	// for (int i = 0; i < angleSteps; i++) {
+	// for (int j = 0; j < angleSteps; j++) {
+	// for (int k = 0; k < angleSteps; k++) {
+	// Parser parser = mParser.clone();
+	// // rotation of molecule
+	// double phix = sAx + angle/angleSteps * i;
+	// double phiy = sAy + angle/angleSteps * j;
+	// double phiz = sAz + angle/angleSteps * k;
+	// Utils.rotate(parser.atoms, phix, phiy, phiz, parser.getSize());
+	// // generation of grid and gridFT for the smaller molecule
+	// Grid mGrid = new Grid(parser, params);
+	// double[][][] mgrid = replaceInnerValues(mGrid, largeNegativeValue);
+	// double[][][] mgridFT = new double[2 * n][2 * n][4 * n];
+	// double[][][] newGridC = new double[2 * n][2 * n][4 * n];
+	// copy(mgrid, mgridFT);
+	// fftDo.realForwardFull(mgridFT);
+	// multiply(newGridC, mgridFT, staticMoleculeGridFT, 2*n);
+	// makeInversable(newGridC, 2*n);
+	// fftDo.realInverse(newGridC, true);
+	// int numberOfAnswer = (int) (i * (angleSteps) * (angleSteps)
+	// + j * (angleSteps) + k);
+	// answer[numberOfAnswer] = findPeak(newGridC, 2*n);
+	// answer[numberOfAnswer][4] = phix;
+	// answer[numberOfAnswer][5] = phiy;
+	// answer[numberOfAnswer][6] = phiz;
+	// System.out.println(Arrays.toString(answer[numberOfAnswer]));
+	// done++;
+	// System.out.println(done + "/" + amountOfPositions);
+	// }
+	// }
+	// }
+	// }
+
 	public Answer apply() {
 		int n = params.N;
 		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);

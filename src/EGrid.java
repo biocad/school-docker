@@ -25,6 +25,7 @@ public class EGrid {
 		for (int i = 0; i < size; i++) {
 			Cell cell = cells.get(i);
 			r[n / 2 + cell.i][n / 2 + cell.j][n / 2 + cell.k] = cell.q;
+			System.out.println(cell.q);
 		}
 		return r;
 	}
