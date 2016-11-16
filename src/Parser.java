@@ -5,7 +5,7 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class Parser {
-	private double minX, minY, minZ, maxX, maxY, maxZ;
+	private double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE, maxX = Double.MIN_VALUE, maxY = Double.MIN_VALUE, maxZ = Double.MIN_VALUE;
 	private double size, shift;
 	public ArrayList<Atom> atoms;
 

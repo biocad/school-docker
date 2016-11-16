@@ -219,13 +219,6 @@ public class Fourier {
 			System.out.println(parser.atoms.get(i).x);
 		}
 		double[] finalAnswer = findFinalAnswer(answer);
-		for (int i = 1; i < 4; i++){
-			if (finalAnswer[i] < n){
-				finalAnswer[i] *= -1;
-			}else{
-				finalAnswer[i] = 2*n - finalAnswer[i];
-			}
-		}
 		System.out.println(Arrays.toString(finalAnswer));
 		Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getShift());
 		Cell d = new Cell(0, 0, 0);
