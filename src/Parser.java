@@ -5,7 +5,8 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class Parser {
-	private double minX, minY, minZ, maxX, maxY, maxZ;
+	private double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE, maxX = -Double.MAX_VALUE,
+			maxY = -Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
 	private double size, shift;
 	public ArrayList<Atom> atoms;
 
@@ -16,13 +17,41 @@ public class Parser {
 		int len = original.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom atom = original.atoms.get(i);
-			atoms.add(new Atom(atom.name, atom.x, atom.y, atom.z));
+			atoms.add(new Atom(atom.name, atom.x, atom.y, atom.z,  atom.q));
+		}
+	}
+	public static double findCharge(String s){
+		double charge = 0;
+		String residue = s.substring(17, 20).trim();
+		String position = s.substring(14, 16).trim();
+		String cha = s.substring(78, 80).trim();		
+		String name = s.substring(76, 78).trim();
+		if (!cha.equals("")){
+			return Double.parseDouble(cha); 
+		}else{
+			switch (name) {
+			case "O":
+				charge = -0.5;
+				if (position.equals("")){
+					charge = -1;
+				}
+				return charge;
+			case "N":
+				charge = 0.5;
+				if ((residue.equals("LYS") && position.equals("Z")) || position.equals("")){
+					charge = 1;
+				}
+				if ( (residue.equals("PRO"))){
+					charge = -0.1;
+				}
+				return charge;
+			default:
+				return charge;
+			}
 		}
 	}
 
 	public Parser(File file) throws FileNotFoundException {
-		minX = minY = minZ = Double.MAX_VALUE;
-		maxX = maxY = maxZ = -minX;
 		atoms = new ArrayList<>();
 		Locale.setDefault(Locale.US);
 		Scanner in = new Scanner(file);
@@ -36,7 +65,8 @@ public class Parser {
 					double y = Double.parseDouble(s.substring(38, 46).trim());
 					double z = Double.parseDouble(s.substring(46, 54).trim());
 					String nm = s.substring(76, 78).trim();
-					Atom atom = new Atom(nm, x, y, z);
+					double charge = findCharge(s);
+					Atom atom = new Atom(nm, x, y, z, charge);
 					maxR = Math.max(maxR, atom.radius);
 					atoms.add(atom);
 
@@ -73,53 +103,46 @@ public class Parser {
 		size = shift * 2;
 		in.close();
 	}
-	
+
 	public void rotate(double ax, double ay, double az) {
 		int len = atoms.size();
-		
 		for (int i = 0; i < len; i++) {
 			Atom a = atoms.get(i);
-			a.x -= shift;
-			a.y -= shift;
-			a.z -= shift;
-			double x = a.x;
-			double y = a.y;
-			double z = a.z;
-			
+			double x = a.x -= shift;
+			double y = a.y -= shift;
+			double z = a.z -= shift;
 			a.y = Math.cos(ax) * y - Math.sin(ax) * z;
 			a.z = Math.sin(ax) * y + Math.cos(ax) * z;
-			
+
 			x = a.x;
 			y = a.y;
 			z = a.z;
-			
+
 			a.x = Math.cos(ay) * x + Math.sin(ay) * z;
 			a.z = -Math.sin(ay) * x + Math.cos(ay) * z;
-			 
+
 			x = a.x;
 			y = a.y;
 			z = a.z;
-			
+
 			a.x = Math.cos(az) * x - Math.sin(az) * y;
 			a.y = Math.sin(az) * x + Math.cos(az) * y;
-			
+
 			a.x += shift;
 			a.y += shift;
 			a.z += shift;
 		}
 	}
-	
+
 	public double getShift() {
 		return shift;
 	}
-	
+
 	public Parser clone() {
 		return new Parser(this);
 	}
-
 
 	public double getSize() {
 		return size;
 	}
 }
-	

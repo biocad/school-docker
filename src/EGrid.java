@@ -66,7 +66,7 @@ public class EGrid {
 									c = map.get(id);
 								}
 								r = Math.sqrt(r);
-								c.q += a.charge/(r*E(r));
+								c.q += a.q/(r*E(r));
 							}
 						}
 					}

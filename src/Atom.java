@@ -1,7 +1,8 @@
 
 
-public class Atom {	
-	private double t = 2;
+public class Atom {
+	
+	private double t = 2.0;
 	final double R_H = t*1f;
 	final double R_C = t*1.4166666666f; 
 	final double R_N = t*1.2916666666f; 
@@ -16,13 +17,15 @@ public class Atom {
 	public double r;
 	public double g;
 	public double b;
+	public double q;
 	String name;
 	
-	public Atom(String name, double x, double y, double z) {		
+	public Atom(String name, double x, double y, double z, double q) {		
 		this.name = name;
 		this.x = x;
 		this.y = y;
 		this.z = z;
+		this.q = q;
 		
 		switch (name) {
 		case "H":
@@ -62,10 +65,11 @@ public class Atom {
 			this.b = 1f;
 			break;
 		default:
-			this.radius = 1f;
+			this.radius = 2*R_H;
 			this.r = 0f;
 			this.g = 1f;
 			this.b = 0f;
+			System.out.println("YES!" + q + " " + name);
 			break;
 		}
 	}
