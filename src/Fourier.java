@@ -2,7 +2,7 @@ import java.util.*;
 import org.jtransforms.fft.*;
 
 public class Fourier {
-	private final double dangle = Math.PI / 4;
+	private final double dangle = Math.PI/3;
 	private ArrayList<Answer> answers = new ArrayList<>();
 	private double largeNegativeValue = -1e6;
 	private double smallPositiveValue = 1e-3;
@@ -107,12 +107,12 @@ public class Fourier {
 	}
 
 	private Answer findFinalAnswer() {
-		Answer finalAnswer = new Answer();
-		for (int i = 0; i < answers.size(); i++) {
-			if (finalAnswer.fitness < answers.get(i).fitness) {
-				finalAnswer = answers.get(i);
-			}
-		}
+		Answer finalAnswer = answers.get(0);
+		
+		
+		
+		
+		// !important
 		double n = params.N;
 		finalAnswer.i -= finalAnswer.i > n ? 2 * n : 0;
 		finalAnswer.j -= finalAnswer.j > n ? 2 * n : 0;
@@ -206,6 +206,12 @@ public class Fourier {
 			}
 		}
 		progress = 1;
+		answers.sort(new Comparator<Answer>() {
+			@Override
+			public int compare(Answer o1, Answer o2) {
+				return -Double.compare(o1.fitness, o2.fitness);
+			}
+		});
 		return findFinalAnswer();
 	}
 }
