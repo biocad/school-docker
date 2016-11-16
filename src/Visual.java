@@ -35,9 +35,10 @@ public class Visual extends JFrame {
 	private Object3D everything = new Object3D();
 	private Object3D content = new Object3D();
 	private Object3D molecules = new Object3D();
+	private Object3D grids = new Object3D();
 	private JProgressBar pb = new JProgressBar();
 	private SimpleUniverse universe;
-	private boolean trigger = false;
+	private boolean trigger1 = false, trigger2 = false;
 	public JButton start = new JButton("Start");
 
 	public void msg(String msg) {
@@ -48,6 +49,10 @@ public class Visual extends JFrame {
 		molecules.self().detach();
 		molecules = new Object3D();
 		content.add(molecules);
+		
+		grids.self().detach();
+		grids = new Object3D();
+		content.add(grids);
 	}
 
 	public void showProgressBar() {
@@ -96,6 +101,8 @@ public class Visual extends JFrame {
 		content = new Object3D();
 		content.scale(0.01);
 		content.add(molecules);
+		content.add(grids);
+		
 		wrapper.add(content);
 
 		everything.add(wrapper);
@@ -148,7 +155,7 @@ public class Visual extends JFrame {
 		JPanel side = new JPanel();
 		side.setLayout(new BorderLayout());
 		JPanel control = new JPanel();
-		control.setLayout(new GridLayout(5, 1));
+		control.setLayout(new GridLayout(7, 1));
 		JButton fileButton1 = new JButton("1st molecule");
 		JButton fileButton2 = new JButton("2nd molecule");
 		ActionListener onChoose = new ActionListener() {
@@ -204,10 +211,10 @@ public class Visual extends JFrame {
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom atom = p.atoms.get(i);
-			Sphere sphere = new Sphere((float) (atom.radius));
+			Sphere sphere = new Sphere((float) (atom.radius / 2));
 			float r = (float) atom.r, g = (float) atom.g, b = (float) atom.b;
 			double k = 0.5;
-			if (trigger) {
+			if (trigger1) {
 				r = (float) (1 - (1 - r) * k);
 				g = (float) (1 - (1 - g) * k);
 				b *= k;
@@ -227,7 +234,7 @@ public class Visual extends JFrame {
 			obj.shift(atom.x, atom.y, atom.z);
 			molecule.add(obj);
 		}
-		trigger = !trigger;
+		trigger1 = !trigger1;
 		molecules.add(molecule);
 		return molecule;
 	}
@@ -249,16 +256,16 @@ public class Visual extends JFrame {
 				continue;
 			}
 			Color3f color = new Color3f(1, 1, 0);
-			if (trigger) {
+			if (trigger2) {
 				color = new Color3f(0, 0, 1);
 			}
-			OwnCube cube = new OwnCube(0.8, color);
+			OwnCube cube = new OwnCube(1, color);
 			Object3D obj = new Object3D();
 			obj.add(cube);
 			obj.shift(c.i + shift.i, c.j + shift.j, c.k + shift.k);
 			grid.add(obj);
 		}
-		trigger = !trigger;
-		molecules.add(grid);
+		trigger2 = !trigger2;
+		grids.add(grid);
 	}
 }

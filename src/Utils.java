@@ -1,6 +1,3 @@
-
-import java.util.ArrayList;
-
 public class Utils {
 	public static Cell[] neighbours = new Cell[]{
 			new Cell(-1, 0, 0),
@@ -31,7 +28,8 @@ public class Utils {
 		return ans;
 	}
 
-	public static void placeMolecule(Parser p, Answer answer, double scale) {
+	public static void placeMolecule(Parser p, Answer answer, Params params) {
+		double scale = params.SCALE;
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++) {
 			p.atoms.get(i).x += answer.i * scale;

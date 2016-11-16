@@ -81,20 +81,6 @@ public class OwnCube extends Shape3D {
 	}
 	
 	/**
-	 * Constructs a color cube with unit scale. The corners of the color cube
-	 * are [-1,-1,-1] and [1,1,1].
-	 */
-	public OwnCube(Color3f color) {
-		QuadArray cube = new QuadArray(24, QuadArray.COORDINATES | QuadArray.COLOR_3);
-
-		cube.setCoordinates(0, verts);
-		cube.setColors(0, colors(color));
-		this.setGeometry(cube);
-
-		scale = 1.0;
-	}
-
-	/**
 	 * Constructs a color cube with the specified scale. The corners of the
 	 * color cube are [-scale,-scale,-scale] and [scale,scale,scale].
 	 * 
@@ -103,7 +89,7 @@ public class OwnCube extends Shape3D {
 	 */
 	public OwnCube(double scale, Color3f color) {
 		QuadArray cube = new QuadArray(24, QuadArray.COORDINATES | QuadArray.COLOR_3);
-
+		scale /= 2;
 		float scaledVerts[] = new float[verts.length];
 		for (int i = 0; i < verts.length; i++)
 			scaledVerts[i] = verts[i] * (float) scale;

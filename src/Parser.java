@@ -5,12 +5,13 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class Parser {
-	private double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE, maxX = Double.MIN_VALUE, maxY = Double.MIN_VALUE, maxZ = Double.MIN_VALUE;
+	private double minX, minY, minZ, maxX, maxY, maxZ;
 	private double size, shift;
 	public ArrayList<Atom> atoms;
 
 	private Parser(Parser original) {
 		size = original.size;
+		shift = original.shift;
 		atoms = new ArrayList<>();
 		int len = original.atoms.size();
 		for (int i = 0; i < len; i++) {
@@ -20,6 +21,8 @@ public class Parser {
 	}
 
 	public Parser(File file) throws FileNotFoundException {
+		minX = minY = minZ = Double.MAX_VALUE;
+		maxX = maxY = maxZ = -minX;
 		atoms = new ArrayList<>();
 		Locale.setDefault(Locale.US);
 		Scanner in = new Scanner(file);
@@ -76,29 +79,33 @@ public class Parser {
 		
 		for (int i = 0; i < len; i++) {
 			Atom a = atoms.get(i);
-			double x = a.x - shift;
-			double y = a.y - shift;
-			double z = a.z - shift;
-			 a.y = Math.cos(ax) * y - Math.sin(ax) * z;
-			 a.z = Math.sin(ax) * y + Math.cos(ax) * z;
-
-			 x = a.x;
-			 y = a.y;
-			 z = a.z;
+			a.x -= shift;
+			a.y -= shift;
+			a.z -= shift;
+			double x = a.x;
+			double y = a.y;
+			double z = a.z;
 			
-			 a.x = Math.cos(ay) * x + Math.sin(ay) * z;
-			 a.z = -Math.sin(ay) * x + Math.cos(ay) * z;
+			a.y = Math.cos(ax) * y - Math.sin(ax) * z;
+			a.z = Math.sin(ax) * y + Math.cos(ax) * z;
+			
+			x = a.x;
+			y = a.y;
+			z = a.z;
+			
+			a.x = Math.cos(ay) * x + Math.sin(ay) * z;
+			a.z = -Math.sin(ay) * x + Math.cos(ay) * z;
 			 
-			 x = a.x;
-			 y = a.y;
-			 z = a.z;
+			x = a.x;
+			y = a.y;
+			z = a.z;
 			
-			 a.x = Math.cos(az) * x - Math.sin(az) * y;
-			 a.y = Math.sin(az) * x + Math.cos(az) * y;
-
-			 a.x += shift;
-			 a.y += shift;
-			 a.z += shift;
+			a.x = Math.cos(az) * x - Math.sin(az) * y;
+			a.y = Math.sin(az) * x + Math.cos(az) * y;
+			
+			a.x += shift;
+			a.y += shift;
+			a.z += shift;
 		}
 	}
 	

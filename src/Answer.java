@@ -1,5 +1,5 @@
 public class Answer {
-	public double fitness = Double.MIN_VALUE;
+	public double fitness = -Double.MAX_VALUE;
 	public int i, j, k;
 	public double ax, ay, az;
 	

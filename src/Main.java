@@ -5,34 +5,44 @@ import javax.swing.JButton;
 
 public class Main {
 	static Visual visual;
-	static Parser sParser = null, mParser = null;
+	static Parser sParser = null, mParser = null, p1,  p2;
 	static int n = 0;
 	
 	static boolean ready() {
-		return sParser != null && mParser != null && n != 0;
+		return p1 != null && p2 != null && n != 0;
 	}
 	
 	static void start() {
 		visual.clear();
-		if (sParser.atoms.size() < mParser.atoms.size()) {
-			Parser t = sParser;
-			sParser = mParser;
-			mParser = t;
+		if (p1.atoms.size() > p2.atoms.size()) {
+			sParser = p1;
+			mParser = p2;
+		} else {
+			sParser = p2;
+			mParser = p1;
 		}
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
-		
-		visual.shiftMolecules(-sParser.getSize() / 2 / scale);
-		//visual.drawMolecule(sParser);
 		Params params = new Params(n, scale);
-		Fourier f = new Fourier(sParser, mParser, params, visual);
+		
+		visual.shiftMolecules(-sParser.getShift());
+		visual.drawMolecule(sParser);
+		Grid sGrid = new Grid(sParser, params);
+		visual.drawGrid(sGrid, new Cell(0, 0, 0));
+		Fourier f = new Fourier(sParser, mParser, params);
 		
 		visual.showProgressBar();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				f.apply();
+				Answer answer = f.apply();
 				visual.hideProgressBar();
+				Parser p = mParser.clone();
+				p.rotate(answer.ax, answer.ay, answer.az);
+				Grid g = new Grid(p, params);
+				Utils.placeMolecule(p, answer, params);
+				visual.drawMolecule(p);
+				visual.drawGrid(g, new Cell(answer.i, answer.j, answer.k));
 			}
 		}).start();
 		new Thread(new Runnable() {
@@ -49,7 +59,7 @@ public class Main {
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
-				}				
+				}
 			}
 		}).start();
 	}
@@ -60,9 +70,9 @@ public class Main {
 			public void onFileSelect(boolean first, File file, JButton b) {
 				try {
 					if (first) {
-						sParser = new Parser(file);
+						p1 = new Parser(file);
 					} else {
-						mParser = new Parser(file);
+						p2 = new Parser(file);
 					}
 					b.setText(file.getName());
 				} catch (Exception e) {

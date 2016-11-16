@@ -2,14 +2,12 @@ import java.util.*;
 import org.jtransforms.fft.*;
 
 public class Fourier {
-	private final double dangle = Math.PI / 2;
-	private int amountOfPositions = (int) Math.pow(2 * Math.PI / dangle, 3) / 2;
+	private final double dangle = Math.PI / 4;
 	private ArrayList<Answer> answers = new ArrayList<>();
 	private double largeNegativeValue = -1e6;
 	private double smallPositiveValue = 1e-3;
 	private Parser sParser, mParser;
 	private Params params;
-	private Visual visual;
 	private double progress = 0;
 	
 	public double getProgress() {
@@ -122,11 +120,10 @@ public class Fourier {
 		return finalAnswer;
 	}
 	
-	public Fourier(Parser sParser, Parser mParser, Params params, Visual visual) {
+	public Fourier(Parser sParser, Parser mParser, Params params) {
 		this.sParser = sParser;
 		this.mParser = mParser;
 		this.params = params;
-		this.visual = visual;
 	}
 	
 //	public void Approach(double sAx, double sAy, double sAz, Parser mParser, int n, DoubleFFT_3D fftDo, double[][][] staticMoleculeGridFT){
@@ -164,7 +161,7 @@ public class Fourier {
 //		}
 //	}
 	
-	public void apply() {
+	public Answer apply() {
 		int n = params.N;
 		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
 		// generation of grid and gridFT for the bigger molecule
@@ -175,9 +172,17 @@ public class Fourier {
 		fftDo.realForwardFull(sFT);
 		// beginning of rotations
 		int done = 0;
+		int total = 0;
 		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
 			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
-				for (double az = 0; az < 2 * Math.PI; az += dangle) {
+				for (double az = 0; az < Math.PI; az += dangle) {
+					total++;
+				}
+			}
+		}
+		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
+			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
+				for (double az = 0; az < Math.PI; az += dangle) {
 					Parser parser = mParser.clone();
 					parser.rotate(ax, ay, az);
 					// generation of grid and gridFT for the smaller molecule
@@ -196,25 +201,11 @@ public class Fourier {
 					answer.az = az;
 					answers.add(answer);
 					done++;
-					progress = 2. * done / amountOfPositions;
+					progress = 1. * done / total;
 				}
 			}
 		}
-		Parser parser = mParser.clone();
-		Answer finalAnswer = findFinalAnswer();
-		for (int i = 0; i < answers.size(); i++) {
-			System.out.println(answers.get(i));
-		}
-		//Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getShift());
-		parser.rotate(finalAnswer.ax, finalAnswer.ay, finalAnswer.az);
-		Cell d = new Cell(0, 0, 0);
-		visual.drawGrid(sGrid, d);
-		Grid g = new Grid(parser, params);
-		d.i = finalAnswer.i;
-		d.j = finalAnswer.j;
-		d.k = finalAnswer.k;
-		visual.drawGrid(g, d);
-		//Utils.placeMolecule(finalAnswer, mParser, scale, n);
-		//visual.drawMolecule(mParser);
+		progress = 1;
+		return findFinalAnswer();
 	}
 }

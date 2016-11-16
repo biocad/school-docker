@@ -5,7 +5,7 @@ public class Atom {
 	final double R_H = t*1f;
 	final double R_C = t*1.4166666666f; 
 	final double R_N = t*1.2916666666f; 
-	final double R_O = t*.2916666666f; 
+	final double R_O = t*1.2916666666f; 
 	final double R_P = t*1.625f; 
 	final double R_S = t*1.5f;
 	
