@@ -19,7 +19,7 @@ public class Grid {
 		int len = p.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom a = p.atoms.get(i);
-			double r = 2*a.radius;
+			double r = a.radius;
 			double x = a.x;
 			double y = a.y;
 			double z = a.z;
@@ -58,6 +58,7 @@ public class Grid {
 	public int[][][] toArray() {
 		int N = n * 2;
 		int[][][] r = new int[N][N][N];
+		boolean[] visited = new boolean[N * N * N];
 		int size = cells.size();
 		for (int i = 0; i < size; i++) {
 			Cell cell = cells.get(i);
@@ -67,8 +68,6 @@ public class Grid {
 		Stack<Cell> stack = new Stack<>();
 		int corner = n / 2 - 1;
 		stack.push(new Cell(corner, corner, corner));
-		TreeSet<Integer> set = new TreeSet<>();
-		set.add(0);
 		while (!stack.isEmpty()) {
 			Cell cur = stack.peek();
 			boolean pop = true;
@@ -82,9 +81,9 @@ public class Grid {
 					Cell next = new Cell(cur.i + di, cur.j + dj, cur.k + dk);
 					if (Utils.inRange(next.i - corner, next.j - corner, next.k - corner, n + 2, n + 2, n + 2)) {
 						int id = next.i * N * N + next.j * N + next.k;
-						if (!set.contains(id)) {
+						if (!visited[id]) {
 							stack.push(next);
-							set.add(id);
+							visited[id] = true;
 							pop = false;
 						}
 					}

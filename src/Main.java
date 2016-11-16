@@ -19,11 +19,12 @@ public class Main {
 			sParser = mParser;
 			mParser = t;
 		}
-		visual.shiftMolecules(-sParser.getSize() / 2);
-		visual.drawMolecule(sParser);
 		
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
+		
+		visual.shiftMolecules(-sParser.getSize() / 2 / scale);
+		//visual.drawMolecule(sParser);
 		Params params = new Params(n, scale);
 		Fourier f = new Fourier(sParser, mParser, params, visual);
 		
@@ -66,7 +67,6 @@ public class Main {
 					}
 					b.setText(file.getName());
 				} catch (Exception e) {
-					e.printStackTrace();
 					visual.msg("Invalid file");
 				}
 				visual.start.setVisible(ready());

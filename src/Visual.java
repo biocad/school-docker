@@ -49,15 +49,15 @@ public class Visual extends JFrame {
 		molecules = new Object3D();
 		content.add(molecules);
 	}
-	
+
 	public void showProgressBar() {
 		pb.setVisible(true);
 	}
-	
+
 	public void setProgress(double p) {
 		pb.setValue((int) (p * 100));
 	}
-	
+
 	public void hideProgressBar() {
 		pb.setVisible(false);
 	}
@@ -92,7 +92,7 @@ public class Visual extends JFrame {
 		zAxis.add(new Cylinder((float) .01, 5));
 		zAxis.rot(0, 0, Math.PI / 2);
 		wrapper.add(zAxis);
-		
+
 		content = new Object3D();
 		content.scale(0.01);
 		content.add(molecules);
@@ -230,5 +230,35 @@ public class Visual extends JFrame {
 		trigger = !trigger;
 		molecules.add(molecule);
 		return molecule;
+	}
+
+	public void drawGrid(Grid g, Cell shift) {
+		Object3D grid = new Object3D();
+		int len = g.cells.size();
+		for (int i = 0; i < len; i++) {
+			Cell c = g.cells.get(i);
+			boolean draw = false;
+			for (int j = 0; j < Utils.neighbours.length; j++) {
+				Cell d = Utils.neighbours[j];
+				if (!g.exists(c.i + d.i, c.j + d.j, c.k + d.k)) {
+					draw = true;
+					break;
+				}
+			}
+			if (!draw) {
+				continue;
+			}
+			Color3f color = new Color3f(1, 1, 0);
+			if (trigger) {
+				color = new Color3f(0, 0, 1);
+			}
+			OwnCube cube = new OwnCube(0.8, color);
+			Object3D obj = new Object3D();
+			obj.add(cube);
+			obj.shift(c.i + shift.i, c.j + shift.j, c.k + shift.k);
+			grid.add(obj);
+		}
+		trigger = !trigger;
+		molecules.add(grid);
 	}
 }

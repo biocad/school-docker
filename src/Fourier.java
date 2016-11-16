@@ -128,25 +128,6 @@ public class Fourier {
 		return finalAnswer;
 	}
 	
-	private double[] findNewFinalAnswer(double[][] answer,  double[] lastanswer) {
-		double[] finalAnswer = new double[sizeOfAnswer];
-		for (int i = 0; i < amountOfPositions; i++) {
-			if (lastanswer[0] == answer[i][0]){
-				answer[i][0] = 0;
-			}
-			if (finalAnswer[0] < answer[i][0]) {
-				finalAnswer[0] = answer[i][0];
-				finalAnswer[1] = answer[i][1];
-				finalAnswer[2] = answer[i][2];
-				finalAnswer[3] = answer[i][3];
-				finalAnswer[4] = answer[i][4];
-				finalAnswer[5] = answer[i][5];
-				finalAnswer[6] = answer[i][6];
-			}
-		}
-		return finalAnswer;
-	}
-	
 	public Fourier(Parser sParser, Parser mParser, Params params, Visual visual) {
 		this.sParser = sParser;
 		this.mParser = mParser;
@@ -210,7 +191,7 @@ public class Fourier {
 					double phix = dangle * i;
 					double phiy = dangle * j;
 					double phiz = dangle * k;
-					Utils.rotate(parser.atoms, phix, phiy, phiz, parser.getSize());
+					Utils.rotate(parser.atoms, phix, phiy, phiz, parser.getShift());
 					//parser.dropOnAxisses();
 					// generation of grid and gridFT for the smaller molecule
 					Grid g1 = new Grid(parser, params);
@@ -234,16 +215,27 @@ public class Fourier {
 			}
 		}
 		Parser parser = mParser.clone();
-		double[] finalAnswer = findFinalAnswer(answer);
-		System.out.println(Arrays.toString(finalAnswer));
-		Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getSize());
-		Grid g = new Grid(parser, params);
-		while (!Utils.checkPosition(finalAnswer, sParser, mParser, params)){
-			finalAnswer = findNewFinalAnswer(answer, finalAnswer);
+		for (int i = 0; i < parser.atoms.size(); i++) {
+			System.out.println(parser.atoms.get(i).x);
 		}
-		//visual.drawGrid(sGrid, new Cell(-n, -n, -n));
-		//visual.drawGrid(g, new Cell((int) (finalAnswer[1]-n), (int) (finalAnswer[2]-n), (int) (finalAnswer[3])-n));
-		Utils.placeMolecule(finalAnswer, parser, scale, n);
-		visual.drawMolecule(parser);
+		double[] finalAnswer = findFinalAnswer(answer);
+		for (int i = 1; i < 4; i++){
+			if (finalAnswer[i] < n){
+				finalAnswer[i] *= -1;
+			}else{
+				finalAnswer[i] = 2*n - finalAnswer[i];
+			}
+		}
+		System.out.println(Arrays.toString(finalAnswer));
+		Utils.rotate(parser.atoms, finalAnswer[4], finalAnswer[5], finalAnswer[6], parser.getShift());
+		Cell d = new Cell(0, 0, 0);
+		visual.drawGrid(sGrid, d);
+		Grid g = new Grid(parser, params);
+		d.i = (int) finalAnswer[1];
+		d.j = (int) finalAnswer[2];
+		d.k = (int) finalAnswer[3];
+		visual.drawGrid(g, d);
+		//Utils.placeMolecule(finalAnswer, mParser, scale, n);
+		//visual.drawMolecule(mParser);
 	}
 }

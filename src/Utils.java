@@ -1,5 +1,6 @@
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Utils {
 	public static Cell[] neighbours = new Cell[]{
@@ -30,66 +31,63 @@ public class Utils {
 		}
 		return ans;
 	}
-	
-	public static void rotate(ArrayList<Atom> atoms, double phix, double phiy, double phiz, double size) {
+
+	public static String requestStr(Scanner sc, String sign) {
+		System.out.print(sign + ": ");
+		return sc.next();
+	}
+
+	public static int requestInt(Scanner sc, String sign) {
+		System.out.print(sign + ": ");
+		return sc.nextInt();
+	}
+
+	public static void shift (ArrayList<Atom> atoms, double size) {
 		int len = atoms.size();
-		
+
 		for (int i = 0; i < len; i++) {
 			double x = atoms.get(i).x - size;
 			double y = atoms.get(i).y - size;
 			double z = atoms.get(i).z - size;
-			 atoms.get(i).y = (Math.cos(phix) * y -
-			 Math.sin(phix) * z) + size;
-			 atoms.get(i).z = (Math.sin(phix) * y +
-			 Math.cos(phix) * z) + size;
-
-			 x = atoms.get(i).x - size;
-			 y = atoms.get(i).y - size;
-			 z = atoms.get(i).z - size;
-			
-			 atoms.get(i).x = (Math.cos(phiy) * x +
-			 Math.sin(phiy) * z) + size;
-			 atoms.get(i).z = (-Math.sin(phiy) * x +
-			 Math.cos(phiy) * z) + size;
-			 
-			 x = atoms.get(i).x - size;
-			 y = atoms.get(i).y - size;
-			 z = atoms.get(i).z - size;
-			
-			 atoms.get(i).x = (Math.cos(phiz) * x -
-			 Math.sin(phiz) * y) + size;
-			 atoms.get(i).y = (Math.sin(phiz) * x +
-			 Math.cos(phiz) * y) + size;
 		}
 	}
 	
-	public static boolean checkPosition(double[] answer, Parser sParser,  Parser mParser, Params params){
-		int n = params.N;
-		EGrid sEGrid = new EGrid(sParser, params);
-		EGrid mEGrid = new EGrid(mParser, params);
-		double[][][] sMEGrid = sEGrid.toEArray();
-		double[][][] mMEGrid = mEGrid.toEArray();
-		double mult = 0;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				for (int k = 0; k < n; k++) {
-					mult += sMEGrid[i][j][k]*mMEGrid[i+(int)answer[1]][j+(int)answer[2]][k+(int)answer[3]];
-				}
-			}
+	public static void rotate(ArrayList<Atom> atoms, double phix, double phiy, double phiz, double shift) {
+		int len = atoms.size();
+		
+		for (int i = 0; i < len; i++) {
+			Atom a = atoms.get(i);
+			double x = a.x - shift;
+			double y = a.y - shift;
+			double z = a.z - shift;
+			 a.y = Math.cos(phix) * y - Math.sin(phix) * z;
+			 a.z = Math.sin(phix) * y + Math.cos(phix) * z;
+
+			 x = a.x;
+			 y = a.y;
+			 z = a.z;
+			
+			 a.x = Math.cos(phiy) * x + Math.sin(phiy) * z;
+			 a.z = -Math.sin(phiy) * x + Math.cos(phiy) * z;
+			 
+			 x = a.x;
+			 y = a.y;
+			 z = a.z;
+			
+			 a.x = Math.cos(phiz) * x - Math.sin(phiz) * y;
+			 a.y = Math.sin(phiz) * x + Math.cos(phiz) * y;
+
+			 a.x += shift;
+			 a.y += shift;
+			 a.z += shift;
 		}
-		return true;
 	}
+	
+
 
 	public static void placeMolecule(double[] answer, Parser p, double scale, int n) {
 		rotate(p.atoms, answer[4], answer[5], answer[6], p.getSize());
 		int len = p.atoms.size();
-		for (int i = 1; i < 4; i++){
-			if (answer[i] < n){
-				answer[i] *= -1;
-			}else{
-				answer[i] = 2*n - answer[i];
-			}
-		}
 		for (int i = 0; i < len; i++) {
 			p.atoms.get(i).x -= (answer[1]) * scale;
 			p.atoms.get(i).y -= (answer[2]) * scale;
