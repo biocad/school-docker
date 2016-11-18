@@ -2,7 +2,7 @@
 
 public class Atom {
 	
-	private double t = 2.0;
+	private double t = 2;
 	final double R_H = t*1f;
 	final double R_C = t*1.4166666666f; 
 	final double R_N = t*1.2916666666f; 

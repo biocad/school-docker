@@ -29,12 +29,13 @@ public class Utils {
 	}
 
 	public static void placeMolecule(Parser p, Answer answer, Params params) {
-		double scale = params.SCALE;
-		int len = p.atoms.size();
+		p.lock();
+		double scale = params.scale;
+		int len = p.size();
 		for (int i = 0; i < len; i++) {
-			p.atoms.get(i).x += answer.i * scale;
-			p.atoms.get(i).y += answer.j * scale;
-			p.atoms.get(i).z += answer.k * scale;
+			p.get(i).x += answer.i * scale;
+			p.get(i).y += answer.j * scale;
+			p.get(i).z += answer.k * scale;
 		}
 	}
 }

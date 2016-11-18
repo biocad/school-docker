@@ -12,9 +12,9 @@ public class Main {
 		return p1 != null && p2 != null && n != 0;
 	}
 	
-	static void start() {
+	static void start() throws LockedParserException {
 		visual.clear();
-		if (p1.atoms.size() > p2.atoms.size()) {
+		if (p1.size() > p2.size()) {
 			sParser = p1;
 			mParser = p2;
 		} else {
@@ -24,27 +24,32 @@ public class Main {
 		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
 		double scale = fullSize / n;
 		Params params = new Params(n, scale);
-
-		visual.shiftMolecules(-sParser.getShift());
-		visual.shiftGrids(-sParser.getShift() / scale);
+		
+		visual.posMolecules(-sParser.getShift());
+		visual.posGrids(-sParser.getShift());
 		
 		visual.drawMolecule(sParser);
 		Grid sGrid = new Grid(sParser, params);
-		visual.drawGrid(sGrid, new Cell(0, 0, 0));
+		visual.drawGrid(sGrid, new Cell(0, 0, 0), scale);
 		Fourier f = new Fourier(sParser, mParser, params);
 		
 		visual.showProgressBar();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				Answer answer = f.apply();
-				visual.hideProgressBar();
-				Parser p = mParser.clone();
-				p.rotate(answer.ax, answer.ay, answer.az);
-				Grid g = new Grid(p, params);
-				Utils.placeMolecule(p, answer, params);
-				visual.drawMolecule(p);
-				visual.drawGrid(g, new Cell(answer.i, answer.j, answer.k));
+				try {
+					Answer answer = f.apply();
+					System.out.println(answer);
+					visual.hideProgressBar();
+					Parser p = mParser.clone();
+					p.rotate(answer.ax, answer.ay, answer.az);
+					Grid g = new Grid(p, params);
+					Utils.placeMolecule(p, answer, params);
+					visual.drawMolecule(p);
+					visual.drawGrid(g, new Cell(answer.i, answer.j, answer.k), scale);
+				} catch (LockedParserException e) {
+					e.printStackTrace();
+				}
 			}
 		}).start();
 		new Thread(new Runnable() {
@@ -79,6 +84,7 @@ public class Main {
 					b.setText(file.getName());
 				} catch (Exception e) {
 					visual.msg("Invalid file");
+					e.printStackTrace();
 				}
 				visual.start.setVisible(ready());
 			}
@@ -90,7 +96,11 @@ public class Main {
 
 			@Override
 			public void onStart() {
-				start();
+				try {
+					start();
+				} catch (LockedParserException e) {
+					e.printStackTrace();
+				}
 			}
 		});
 	}

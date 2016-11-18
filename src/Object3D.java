@@ -1,4 +1,5 @@
 import javax.media.j3d.BranchGroup;
+import javax.media.j3d.Group;
 import javax.media.j3d.Node;
 import javax.media.j3d.Transform3D;
 import javax.media.j3d.TransformGroup;
@@ -10,6 +11,7 @@ public class Object3D {
 	private Transform3D t;
 	private double x, y, z, ax, ay, az;
 	private double scale = 1;
+	private Group parent;
 
 	public Object3D() {
 		bg = new BranchGroup();
@@ -45,6 +47,10 @@ public class Object3D {
 		this.x += x;
 		this.y += y;
 		this.z += z;
+	}
+	
+	public void pos(double x, double y, double z) {
+		shift(x - this.x, y - this.y, z - this.z);
 	}
 
 	public void rot(double ax, double ay, double az) {
@@ -105,5 +111,18 @@ public class Object3D {
 
 	public BranchGroup self() {
 		return bg;
+	}
+	
+	public void clear() {
+		tg.removeAllChildren();
+	}
+	
+	public void hide() {
+		parent = (Group) (bg.getParent()); 
+		parent.removeChild(bg);
+	}
+	
+	public void show() {
+		parent.addChild(bg);
 	}
 }

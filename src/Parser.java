@@ -5,10 +5,15 @@ import java.util.Locale;
 import java.util.Scanner;
 
 public class Parser {
-	private double minX = Double.MAX_VALUE, minY = Double.MAX_VALUE, minZ = Double.MAX_VALUE, maxX = -Double.MAX_VALUE,
-			maxY = -Double.MAX_VALUE, maxZ = -Double.MAX_VALUE;
+	private double minX = Double.MAX_VALUE,
+	               minY = Double.MAX_VALUE,
+	               minZ = Double.MAX_VALUE,
+	               maxX = -Double.MAX_VALUE,
+	               maxY = -Double.MAX_VALUE,
+	               maxZ = -Double.MAX_VALUE;
 	private double size, shift;
-	public ArrayList<Atom> atoms;
+	private ArrayList<Atom> atoms;
+	private boolean locked = false;
 
 	private Parser(Parser original) {
 		size = original.size;
@@ -20,14 +25,20 @@ public class Parser {
 			atoms.add(new Atom(atom.name, atom.x, atom.y, atom.z,  atom.q));
 		}
 	}
-	public static double findCharge(String s){
+	
+	private double findCharge(String s){
 		double charge = 0;
 		String residue = s.substring(17, 20).trim();
 		String position = s.substring(14, 16).trim();
 		String cha = s.substring(78, 80).trim();		
 		String name = s.substring(76, 78).trim();
 		if (!cha.equals("")){
-			return Double.parseDouble(cha); 
+			int sign = 1;
+			int len = cha.length();
+			if (cha.charAt(len - 1) == '-') {
+				sign = -1;
+			}
+			return sign * Double.parseDouble(cha.substring(0, len - 1)); 
 		}else{
 			switch (name) {
 			case "O":
@@ -144,5 +155,21 @@ public class Parser {
 
 	public double getSize() {
 		return size;
+	}
+	
+	public void lock() {
+		locked = true;
+	}
+	
+	public boolean isLocked() {
+		return locked;
+	}
+	
+	public int size() {
+		return atoms.size();
+	}
+	
+	public Atom get(int i) {
+		return atoms.get(i);
 	}
 }

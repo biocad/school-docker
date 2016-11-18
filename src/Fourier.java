@@ -4,8 +4,9 @@ import org.jtransforms.fft.*;
 public class Fourier {
 	private final double dangle = Math.PI / 3;
 	private ArrayList<Answer> answers = new ArrayList<>();
-	private double largeNegativeValue = -1e6;
-	private double smallPositiveValue = 1e-3;
+	private DoubleFFT_3D fftDo;
+	private double largeNegativeValue = -1e12;
+	private double smallPositiveValue = 1e-6;
 	private Parser sParser, mParser;
 	private Params params;
 	private double progress = 0;
@@ -15,13 +16,12 @@ public class Fourier {
 	}
 
 	private double[][][] replaceInnerValues(Grid g, double value) {
-		int[][][] grid = g.toArray();
-		int n = grid.length;
+		int n = g.arr.length;
 		double[][][] r = new double[n][n][n];
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int k = 0; k < n; k++) {
-					double v = grid[i][j][k];
+					double v = g.arr[i][j][k];
 					if (v == Grid.inner) {
 						v = value;
 					}
@@ -42,22 +42,33 @@ public class Fourier {
 			}
 		}
 	}
+	
+	private double[][][] arrToFT(double[][][] _Arr) {
+		int n = params.n;
+		double[][][] _FT = new double[2 * n][2 * n][4 * n];
+		copy(_Arr, _FT);
+		fftDo.realForwardFull(_FT);
+		return _FT;
+	}
 
-	private void multiply(double[][][] newGridC, double[][][] grid1FT, double[][][] grid2FT, int n) {
+	private void multiply(double[][][] ft, double[][][] grid1FT, double[][][] grid2FT) {
+		int n = ft.length;
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				for (int k = 0; k < n; k++) {
-					grid1FT[i][j][2 * k + 1] *= (-1);
-					newGridC[i][j][2 * k] = (grid1FT[i][j][2 * k] * grid2FT[i][j][2 * k]
-							- grid1FT[i][j][2 * k + 1] * grid2FT[i][j][2 * k + 1]);
-					newGridC[i][j][2 * k + 1] = (grid1FT[i][j][2 * k + 1] * grid2FT[i][j][2 * k]
-							+ grid1FT[i][j][2 * k] * grid2FT[i][j][2 * k + 1]);
+					grid1FT[i][j][2 * k + 1] *= -1;
+					ft[i][j][2 * k] = grid1FT[i][j][2 * k] *     grid2FT[i][j][2 * k] -
+					                        grid1FT[i][j][2 * k + 1] * grid2FT[i][j][2 * k + 1];
+					
+					ft[i][j][2 * k + 1] = grid1FT[i][j][2 * k + 1] * grid2FT[i][j][2 * k] +
+					                            grid1FT[i][j][2 * k] *     grid2FT[i][j][2 * k + 1];
 				}
 			}
 		}
 	}
 
-	private void makeInversable(double grid[][][], int n) {
+	private void makeInversable(double grid[][][]) {
+		int n = grid.length;
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				if (i == 0 || i == n / 2) {
@@ -88,64 +99,38 @@ public class Fourier {
 		}
 	}
 
-	private Answer findPeak(double[][][] grid) {
-		int n = grid.length;
-		Answer answer = new Answer();
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				for (int k = 0; k < n; k++) {
-					if (answer.fitness < grid[i][j][k]) {
-						answer.fitness = grid[i][j][k];
-						answer.i = i;
-						answer.j = j;
-						answer.k = k;
-					}
-				}
-			}
-		}
-		return answer;
-	}
-
-	private boolean checkPosition(Answer answer, Parser sParser, Parser mParser, Params params) {
-		int n = params.N;
-		EGrid sEGrid = new EGrid(sParser, params);
-		EGrid mEGrid = new EGrid(mParser, params);
-		double[][][] sMEGrid = sEGrid.toEArray();
-		double[][][] mMEGrid = mEGrid.toEArray();
-		double mult = 0;
-		for (int i = 0; i < n; i++) {
-			for (int j = 0; j < n; j++) {
-				for (int k = 0; k < n; k++) {
-					if (Utils.inRange(i + answer.i, j + answer.j, k + answer.k, n, n, n)){
-						mult += sMEGrid[i][j][k] + mMEGrid[i + answer.i][j + answer.j][k + answer.k];
-					}
-				}
-			}
-		}
-		System.out.println(mult);
-		if (mult < 0){
-			return false;
-		}else{
-			return true;
-		}
-	}
-
-	private Answer findFinalAnswer() {
-		int len = answers.size();
-		int a = 0;
+	private Answer[] findPeaks(double[][][] grid) {
+		int len = 3;
+		Answer[] localAnswers = new Answer[len];
 		for (int i = 0; i < len; i++) {
-			if (checkPosition(answers.get(i), sParser, mParser, params)) {
-				a = i;
-				break;
+			localAnswers[i] = new Answer();
+		}
+		int n = grid.length;
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				for (int k = 0; k < n; k++) {
+					double v = grid[i][j][k];
+					if (v > localAnswers[0].fitness) {
+						Answer a = new Answer();
+						a.i = i;
+						a.j = j;
+						a.k = k;
+						a.fitness = v;
+						localAnswers[0] = a;
+						for (int cur = 0; cur < len - 1; cur++) {
+							if (localAnswers[cur].fitness > localAnswers[cur + 1].fitness) {
+								Answer t = localAnswers[cur];
+								localAnswers[cur] = localAnswers[cur + 1];
+								localAnswers[cur + 1] = t;
+							} else {
+								break;
+							}
+						}
+					}
+				}
 			}
 		}
-		Answer finalAnswer = answers.get(a);
-		// !important
-		double n = params.N;
-		finalAnswer.i -= finalAnswer.i > n ? 2 * n : 0;
-		finalAnswer.j -= finalAnswer.j > n ? 2 * n : 0;
-		finalAnswer.k -= finalAnswer.k > n ? 2 * n : 0;
-		return finalAnswer;
+		return localAnswers;
 	}
 
 	public Fourier(Parser sParser, Parser mParser, Params params) {
@@ -190,16 +175,15 @@ public class Fourier {
 	// }
 	// }
 
-	public Answer apply() {
-		int n = params.N;
-		DoubleFFT_3D fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
-		// generation of grid and gridFT for the bigger molecule
+	public Answer apply() throws LockedParserException {
+		int n = params.n;
+		fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
+		
+		// generating grid and gridFT for the bigger molecule
 		Grid sGrid = new Grid(sParser, params);
 		double[][][] sArr = replaceInnerValues(sGrid, smallPositiveValue);
-		double[][][] sFT = new double[2 * n][2 * n][4 * n];
-		copy(sArr, sFT);
-		fftDo.realForwardFull(sFT);
-		// beginning of rotations
+		double[][][] sFT = arrToFT(sArr);
+		
 		int done = 0;
 		int total = 0;
 		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
@@ -209,26 +193,30 @@ public class Fourier {
 				}
 			}
 		}
+		
 		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
 			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
 				for (double az = 0; az < Math.PI; az += dangle) {
 					Parser parser = mParser.clone();
 					parser.rotate(ax, ay, az);
+					
 					// generation of grid and gridFT for the smaller molecule
 					Grid mGrid = new Grid(parser, params);
 					double[][][] mArr = replaceInnerValues(mGrid, largeNegativeValue);
-					double[][][] mFT = new double[2 * n][2 * n][4 * n];
+					double[][][] mFT = arrToFT(mArr);
+
 					double[][][] ft = new double[2 * n][2 * n][4 * n];
-					copy(mArr, mFT);
-					fftDo.realForwardFull(mFT);
-					multiply(ft, mFT, sFT, 2 * n);
-					makeInversable(ft, 2 * n);
+					multiply(ft, mFT, sFT);
+					makeInversable(ft);
 					fftDo.realInverse(ft, true);
-					Answer answer = findPeak(ft);
-					answer.ax = ax;
-					answer.ay = ay;
-					answer.az = az;
-					answers.add(answer);
+					Answer[] localAnswers = findPeaks(ft);
+					for (int i = 0; i < localAnswers.length; i++) {
+						Answer answer = localAnswers[i];
+						answer.ax = ax;
+						answer.ay = ay;
+						answer.az = az;
+						answers.add(answer);
+					}
 					done++;
 					progress = 1. * done / total;
 				}
@@ -241,6 +229,42 @@ public class Fourier {
 				return -Double.compare(o1.fitness, o2.fitness);
 			}
 		});
-		return findFinalAnswer();
+		int len = answers.size();
+		for (int i = 0; i < len; i++) {
+			// !important
+			Answer answer = answers.get(i);
+			answer.i -= answer.i > n ? 2 * n : 0;
+			answer.j -= answer.j > n ? 2 * n : 0;
+			answer.k -= answer.k > n ? 2 * n : 0;
+		}
+		int a = 0;
+		PhiGrid phiGrid = new PhiGrid(sParser, params);
+		for (int cur = 0; cur < len; cur++) {
+			Answer answer = answers.get(cur);
+			System.out.println(answer.fitness);
+			Parser p = mParser.clone();
+			p.rotate(answer.ax, answer.ay, answer.az);
+			QGrid qGrid = new QGrid(p, params);
+			double summ = 0;
+			for (int i = 0; i < n; i++) {
+				for (int j = 0; j < n; j++) {
+					for (int k = 0; k < n; k++) {
+						int ci = answer.i + i;
+						int cj = answer.j + j;
+						int ck = answer.k + k;
+						if (Utils.inRange(ci, cj, ck, n, n, n)) {
+							summ += phiGrid.arr[ci][cj][ck] * qGrid.arr[i][j][k];
+						}
+					}
+				}
+			}
+			System.out.println(summ);
+			if (summ < 0) {
+				a = cur;
+				break;
+			}
+		}
+		Answer finalAnswer = answers.get(a);
+		return finalAnswer;
 	}
 }

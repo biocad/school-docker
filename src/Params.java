@@ -1,9 +1,9 @@
 public class Params {
-	public final int N; // grid side
-	public final double SCALE; // grid cell size
+	public final int n; // grid side
+	public final double scale; // grid cell size
 	
 	public Params(int n, double scale) {
-		this.N = n;
-		this.SCALE = scale;
+		this.n = n;
+		this.scale = scale;
 	}
 }

@@ -14,6 +14,7 @@ import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.Material;
+import javax.media.j3d.RenderingAttributes;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -37,7 +38,11 @@ public class Visual extends JFrame {
 	private Object3D content = new Object3D();
 	private Object3D molecules = new Object3D();
 	private Object3D grids = new Object3D();
+	
 	private JProgressBar pb = new JProgressBar();
+	JCheckBox showMolecules = new JCheckBox("Show molecules");
+	JCheckBox showGrids = new JCheckBox("Show grids");
+	
 	private SimpleUniverse universe;
 	private boolean trigger1 = false, trigger2 = false;
 	public JButton start = new JButton("Start");
@@ -47,13 +52,8 @@ public class Visual extends JFrame {
 	}
 
 	public void clear() {
-		molecules.self().detach();
-		molecules = new Object3D();
-		content.add(molecules);
-		
-		grids.self().detach();
-		grids = new Object3D();
-		content.add(grids);
+		molecules.clear();
+		grids.clear();
 	}
 
 	public void showProgressBar() {
@@ -111,28 +111,7 @@ public class Visual extends JFrame {
 		universe = new SimpleUniverse(canvas);
 		universe.getViewingPlatform().setNominalViewingTransform();
 		universe.addBranchGraph(everything.self());
-
-		canvas.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-				switch (e.getKeyCode()) {
-				case KeyEvent.VK_EQUALS:
-					content.scale(content.scale() * 1.2);
-					break;
-				case KeyEvent.VK_MINUS:
-					content.scale(content.scale() / 1.2);
-					break;
-				}
-			}
-		});
+		
 		canvas.addMouseMotionListener(new MouseMotionListener() {
 			@Override
 			public void mouseMoved(MouseEvent e) {
@@ -173,6 +152,39 @@ public class Visual extends JFrame {
 		};
 		fileButton1.addActionListener(onChoose);
 		fileButton2.addActionListener(onChoose);
+		KeyListener keyListener = new KeyListener() {
+			@Override
+			public void keyTyped(KeyEvent e) {
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				switch (e.getKeyCode()) {
+				case KeyEvent.VK_EQUALS:
+					content.scale(content.scale() * 1.2);
+					break;
+				case KeyEvent.VK_MINUS:
+					content.scale(content.scale() / 1.2);
+					break;
+				case KeyEvent.VK_1:
+					fileButton1.getActionListeners()[0].actionPerformed(new ActionEvent(fileButton1, 0, ""));
+					break;
+				case KeyEvent.VK_2:
+					fileButton2.getActionListeners()[0].actionPerformed(new ActionEvent(fileButton2, 0, ""));
+					break;
+				case KeyEvent.VK_ENTER:
+					start.getActionListeners()[0].actionPerformed(null);
+					break;
+				}
+			}
+		};
+		canvas.addKeyListener(keyListener);
+		fileButton1.addKeyListener(keyListener);
+		fileButton2.addKeyListener(keyListener);
 		control.add(fileButton1);
 		control.add(fileButton2);
 		JComboBox<Integer> num = new JComboBox<>(new Integer[] { 32, 64, 128, 256 });
@@ -182,7 +194,6 @@ public class Visual extends JFrame {
 				listener.onNumEntered((int) num.getSelectedItem());
 			}
 		});
-		//listener.onNumEntered(32);
 		num.getActionListeners()[0].actionPerformed(null);
 		control.add(num);
 		start.addActionListener(new ActionListener() {
@@ -192,22 +203,22 @@ public class Visual extends JFrame {
 			}
 		});
 		start.setVisible(false);
+		start.addKeyListener(keyListener);
 		control.add(start);
 		pb.setMinimum(0);
 		pb.setMaximum(100);
 		pb.setVisible(false);
 		control.add(pb);
-		JCheckBox showMolecules = new JCheckBox("Show molecules");
-		JCheckBox showGrids = new JCheckBox("Show grids");
 		showMolecules.setSelected(true);
 		showGrids.setSelected(true);
 		showMolecules.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (showMolecules.isSelected()) {
-					molecules.shift(1e6, 0, 0);
+					molecules.show();
 				} else {
-					molecules.shift(-1e6, 0, 0);
+					molecules.hide();
+					//molecules.shift(1e6, 0, 0);
 				}
 			}
 		});
@@ -215,14 +226,12 @@ public class Visual extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if (showGrids.isSelected()) {
-					grids.shift(1e6, 0, 0);
+					grids.show();
 				} else {
-					grids.shift(-1e6, 0, 0);
+					grids.hide();
 				}
 			}
 		});
-		showMolecules.getActionListeners()[0].actionPerformed(null);
-		showGrids.getActionListeners()[0].actionPerformed(null);
 		control.add(showMolecules);
 		control.add(showGrids);
 		side.add(control, BorderLayout.NORTH);
@@ -232,20 +241,20 @@ public class Visual extends JFrame {
 		setVisible(true);
 	}
 
-	public void shiftMolecules(double shift) {
-		molecules.shift(shift, shift, shift);
+	public void posMolecules(double shift) {
+		molecules.pos(shift, shift, shift);
 	}
 
-	public void shiftGrids(double shift) {
-		grids.shift(shift, shift, shift);
+	public void posGrids(double shift) {
+		grids.pos(shift, shift, shift);
 	}
 
 	public Object3D drawMolecule(Parser p) {
 		Object3D molecule = new Object3D();
-		int len = p.atoms.size();
+		int len = p.size();
 		for (int i = 0; i < len; i++) {
-			Atom atom = p.atoms.get(i);
-			Sphere sphere = new Sphere((float) (atom.radius / 2));
+			Atom atom = p.get(i);
+			Sphere sphere = new Sphere((float) atom.radius);
 			float r = (float) atom.r, g = (float) atom.g, b = (float) atom.b;
 			double k = 0.5;
 			if (trigger1) {
@@ -262,6 +271,9 @@ public class Visual extends JFrame {
 			Color3f color = new Color3f(r, g, b);
 			Material material = new Material(color, black, color, black, 1f);
 			ap.setMaterial(material);
+			RenderingAttributes attr = new RenderingAttributes();
+			attr.setAlphaTestValue((float) .5);
+			ap.setRenderingAttributes(attr);
 			sphere.setAppearance(ap);
 			Object3D obj = new Object3D();
 			obj.add(sphere);
@@ -273,30 +285,19 @@ public class Visual extends JFrame {
 		return molecule;
 	}
 
-	public void drawGrid(Grid g, Cell shift) {
+	public void drawGrid(Grid g, Cell shift, double scale) {
 		Object3D grid = new Object3D();
-		int len = g.cells.size();
+		int len = g.size();
 		for (int i = 0; i < len; i++) {
-			Cell c = g.cells.get(i);
-			boolean draw = false;
-			for (int j = 0; j < Utils.neighbours.length; j++) {
-				Cell d = Utils.neighbours[j];
-				if (!g.exists(c.i + d.i, c.j + d.j, c.k + d.k)) {
-					draw = true;
-					break;
-				}
-			}
-			if (!draw) {
-				continue;
-			}
+			Cell c = g.get(i);
 			Color3f color = new Color3f(1, 1, 0);
 			if (trigger2) {
 				color = new Color3f(0, 0, 1);
 			}
-			OwnCube cube = new OwnCube(1, color);
+			OwnCube cube = new OwnCube(.5 * scale, color);
 			Object3D obj = new Object3D();
 			obj.add(cube);
-			obj.shift(c.i + shift.i, c.j + shift.j, c.k + shift.k);
+			obj.shift((c.i + shift.i) * scale, (c.j + shift.j) * scale, (c.k + shift.k) * scale);
 			grid.add(obj);
 		}
 		trigger2 = !trigger2;
