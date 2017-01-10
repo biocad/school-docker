@@ -8,16 +8,16 @@ public class Grid {
 	public static final int surface = 1;
 	public static final int inner = 2;
 	
-	public Grid(Parser p, Params params) throws LockedParserException {
-		if (p.isLocked()) {
-			throw new LockedParserException();
+	public Grid(Molecule m, Params params) throws LockedMoleculeException {
+		if (m.isLocked()) {
+			throw new LockedMoleculeException();
 		}
 		int n = params.n, N = 2 * n;
 		arr = new double[N][N][N];
 		double scale = params.scale;
-		int len = p.size();
+		int len = m.size();
 		for (int i = 0; i < len; i++) {
-			Atom a = p.get(i);
+			Atom a = m.get(i);
 			double r = a.radius;
 			double x = a.x;
 			double y = a.y;

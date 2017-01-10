@@ -12,30 +12,14 @@ public class Utils {
 		return i >= 0 && i < w && j >= 0 && j < h && k >= 0 && k < d;
 	}
 
-	public static double max(double... a) {
-		double ans = Double.MIN_VALUE;
-		for (int i = 0; i < a.length; i++) {
-			ans = Math.max(ans, a[i]);
-		}
-		return ans;
-	}
-
-	public static double min(double... a) {
-		double ans = Double.MAX_VALUE;
-		for (int i = 0; i < a.length; i++) {
-			ans = Math.min(ans, a[i]);
-		}
-		return ans;
-	}
-
-	public static void placeMolecule(Parser p, Answer answer, Params params) {
-		p.lock();
+	public static void placeMolecule(Molecule m, Answer answer, Params params) {
+		m.lock();
 		double scale = params.scale;
-		int len = p.size();
+		int len = m.size();
 		for (int i = 0; i < len; i++) {
-			p.get(i).x += answer.i * scale;
-			p.get(i).y += answer.j * scale;
-			p.get(i).z += answer.k * scale;
+			m.get(i).x += answer.i * scale;
+			m.get(i).y += answer.j * scale;
+			m.get(i).z += answer.k * scale;
 		}
 	}
 }

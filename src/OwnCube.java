@@ -36,6 +36,11 @@
  * maintenance of any nuclear facility.
  *
  */
+
+/*
+ * Copyright (c) 2016 Reutsky and Ukhatov
+ * We haven't read anything above but we agree with that
+ */
 import javax.media.j3d.QuadArray;
 import javax.media.j3d.Shape3D;
 import javax.vecmath.Color3f;

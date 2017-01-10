@@ -1,14 +1,14 @@
 public class QGrid {
 	public double[][][] arr;
 	
-	public QGrid(Parser p, Params params) {
+	public QGrid(Molecule m, Params params) {
 		int n = params.n;
 		double scale = params.scale;
 		arr = new double[n][n][n];
 		
-		int len = p.size();
+		int len = m.size();
 		for (int i = 0; i < len; i++) {
-			Atom a = p.get(i);
+			Atom a = m.get(i);
 			double x = a.x / scale;
 			double y = a.y / scale;
 			double z = a.z / scale;

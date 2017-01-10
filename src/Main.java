@@ -5,33 +5,30 @@ import javax.swing.JButton;
 
 public class Main {
 	static Visual visual;
-	static Parser sParser = null, mParser = null, p1,  p2;
-	static int n = 0;
+	static Molecule sMolecule = null, mMolecule = null, m1,  m2;
 	
 	static boolean ready() {
-		return p1 != null && p2 != null && n != 0;
+		return m1 != null && m2 != null;
 	}
 	
-	static void start() throws LockedParserException {
+	static void start() throws LockedMoleculeException {
 		visual.clear();
-		if (p1.size() > p2.size()) {
-			sParser = p1;
-			mParser = p2;
+		if (m1.size() > m2.size()) {
+			sMolecule = m1;
+			mMolecule = m2;
 		} else {
-			sParser = p2;
-			mParser = p1;
+			sMolecule = m2;
+			mMolecule = m1;
 		}
-		double fullSize = Math.max(sParser.getSize(), mParser.getSize()); 
-		double scale = fullSize / n;
-		Params params = new Params(n, scale);
+		Params params = new Params(sMolecule, mMolecule);
 		
-		visual.posMolecules(-sParser.getShift());
-		visual.posGrids(-sParser.getShift());
+		visual.posMolecules(-sMolecule.getShift());
+		visual.posGrids(-sMolecule.getShift());
 		
-		visual.drawMolecule(sParser);
-		Grid sGrid = new Grid(sParser, params);
-		visual.drawGrid(sGrid, new Cell(0, 0, 0), scale);
-		Fourier f = new Fourier(sParser, mParser, params);
+		visual.drawMolecule(sMolecule);
+		Grid sGrid = new Grid(sMolecule, params);
+		visual.drawGrid(sGrid, new Cell(0, 0, 0), params);
+		Fourier f = new Fourier(sMolecule, mMolecule, params);
 		
 		visual.showProgressBar();
 		new Thread(new Runnable() {
@@ -41,13 +38,13 @@ public class Main {
 					Answer answer = f.apply();
 					System.out.println(answer);
 					visual.hideProgressBar();
-					Parser p = mParser.clone();
-					p.rotate(answer.ax, answer.ay, answer.az);
-					Grid g = new Grid(p, params);
-					Utils.placeMolecule(p, answer, params);
-					visual.drawMolecule(p);
-					visual.drawGrid(g, new Cell(answer.i, answer.j, answer.k), scale);
-				} catch (LockedParserException e) {
+					Molecule m = mMolecule.clone();
+					m.rotate(answer.ax, answer.ay, answer.az);
+					Grid g = new Grid(m, params);
+					Utils.placeMolecule(m, answer, params);
+					visual.drawMolecule(m);
+					visual.drawGrid(g, new Cell(answer.i, answer.j, answer.k), params);
+				} catch (LockedMoleculeException e) {
 					e.printStackTrace();
 				}
 			}
@@ -77,9 +74,9 @@ public class Main {
 			public void onFileSelect(boolean first, File file, JButton b) {
 				try {
 					if (first) {
-						p1 = new Parser(file);
+						m1 = new Molecule(file);
 					} else {
-						p2 = new Parser(file);
+						m2 = new Molecule(file);
 					}
 					b.setText(file.getName());
 				} catch (Exception e) {
@@ -90,15 +87,10 @@ public class Main {
 			}
 
 			@Override
-			public void onNumEntered(int num) {
-				n = num;
-			}
-
-			@Override
 			public void onStart() {
 				try {
 					start();
-				} catch (LockedParserException e) {
+				} catch (LockedMoleculeException e) {
 					e.printStackTrace();
 				}
 			}

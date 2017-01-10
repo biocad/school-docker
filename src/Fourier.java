@@ -7,7 +7,7 @@ public class Fourier {
 	private DoubleFFT_3D fftDo;
 	private double largeNegativeValue = -1e12;
 	private double smallPositiveValue = 1e-6;
-	private Parser sParser, mParser;
+	private Molecule sMolecule, mMolecule;
 	private Params params;
 	private double progress = 0;
 
@@ -133,9 +133,9 @@ public class Fourier {
 		return localAnswers;
 	}
 
-	public Fourier(Parser sParser, Parser mParser, Params params) {
-		this.sParser = sParser;
-		this.mParser = mParser;
+	public Fourier(Molecule sMolecule, Molecule mMolecule, Params params) {
+		this.sMolecule = sMolecule;
+		this.mMolecule = mMolecule;
 		this.params = params;
 	}
 
@@ -175,12 +175,12 @@ public class Fourier {
 	// }
 	// }
 
-	public Answer apply() throws LockedParserException {
+	public Answer apply() throws LockedMoleculeException {
 		int n = params.n;
 		fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
 		
 		// generating grid and gridFT for the bigger molecule
-		Grid sGrid = new Grid(sParser, params);
+		Grid sGrid = new Grid(sMolecule, params);
 		double[][][] sArr = replaceInnerValues(sGrid, smallPositiveValue);
 		double[][][] sFT = arrToFT(sArr);
 		
@@ -197,7 +197,7 @@ public class Fourier {
 		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
 			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
 				for (double az = 0; az < Math.PI; az += dangle) {
-					Parser parser = mParser.clone();
+					Molecule parser = mMolecule.clone();
 					parser.rotate(ax, ay, az);
 					
 					// generation of grid and gridFT for the smaller molecule
@@ -238,13 +238,13 @@ public class Fourier {
 			answer.k -= answer.k > n ? 2 * n : 0;
 		}
 		int a = 0;
-		PhiGrid phiGrid = new PhiGrid(sParser, params);
+		PhiGrid phiGrid = new PhiGrid(sMolecule, params);
 		for (int cur = 0; cur < len; cur++) {
 			Answer answer = answers.get(cur);
 			System.out.println(answer.fitness);
-			Parser p = mParser.clone();
-			p.rotate(answer.ax, answer.ay, answer.az);
-			QGrid qGrid = new QGrid(p, params);
+			Molecule m = mMolecule.clone();
+			m.rotate(answer.ax, answer.ay, answer.az);
+			QGrid qGrid = new QGrid(m, params);
 			double summ = 0;
 			for (int i = 0; i < n; i++) {
 				for (int j = 0; j < n; j++) {

@@ -17,7 +17,6 @@ import javax.media.j3d.Material;
 import javax.media.j3d.RenderingAttributes;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -187,15 +186,6 @@ public class Visual extends JFrame {
 		fileButton2.addKeyListener(keyListener);
 		control.add(fileButton1);
 		control.add(fileButton2);
-		JComboBox<Integer> num = new JComboBox<>(new Integer[] { 32, 64, 128, 256 });
-		num.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				listener.onNumEntered((int) num.getSelectedItem());
-			}
-		});
-		num.getActionListeners()[0].actionPerformed(null);
-		control.add(num);
 		start.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -249,11 +239,11 @@ public class Visual extends JFrame {
 		grids.pos(shift, shift, shift);
 	}
 
-	public Object3D drawMolecule(Parser p) {
+	public Object3D drawMolecule(Molecule m) {
 		Object3D molecule = new Object3D();
-		int len = p.size();
+		int len = m.size();
 		for (int i = 0; i < len; i++) {
-			Atom atom = p.get(i);
+			Atom atom = m.get(i);
 			Sphere sphere = new Sphere((float) atom.radius);
 			float r = (float) atom.r, g = (float) atom.g, b = (float) atom.b;
 			double k = 0.5;
@@ -285,7 +275,8 @@ public class Visual extends JFrame {
 		return molecule;
 	}
 
-	public void drawGrid(Grid g, Cell shift, double scale) {
+	public void drawGrid(Grid g, Cell shift, Params params) {
+		double scale = params.scale;
 		Object3D grid = new Object3D();
 		int len = g.size();
 		for (int i = 0; i < len; i++) {
