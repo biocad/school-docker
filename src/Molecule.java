@@ -13,12 +13,14 @@ public class Molecule {
 	               maxZ = -Double.MAX_VALUE;
 	private double size, shift;
 	private ArrayList<Atom> atoms;
+	private ArrayList<Atom> ions;
 	private boolean locked = false;
 
 	private Molecule(Molecule original) {
 		size = original.size;
 		shift = original.shift;
 		atoms = new ArrayList<>();
+		ions = new ArrayList<>();
 		int len = original.atoms.size();
 		for (int i = 0; i < len; i++) {
 			Atom atom = original.atoms.get(i);
@@ -64,6 +66,7 @@ public class Molecule {
 
 	public Molecule(File file) throws FileNotFoundException {
 		atoms = new ArrayList<>();
+		ions = new ArrayList<>();
 		Locale.setDefault(Locale.US);
 		Scanner in = new Scanner(file);
 		String s = in.nextLine();
@@ -80,7 +83,10 @@ public class Molecule {
 					Atom atom = new Atom(nm, x, y, z, charge);
 					maxR = Math.max(maxR, atom.radius);
 					atoms.add(atom);
-
+					if (charge != 0) {
+						ions.add(atom);
+					}
+					
 					minX = Math.min(minX, x);
 					minY = Math.min(minY, y);
 					minZ = Math.min(minZ, z);
@@ -171,5 +177,13 @@ public class Molecule {
 	
 	public Atom get(int i) {
 		return atoms.get(i);
+	}
+	
+	public int iSize() {
+		return ions.size();
+	}
+	
+	public Atom iGet(int i) {
+		return ions.get(i);
 	}
 }

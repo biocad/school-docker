@@ -28,7 +28,7 @@ public class Main {
 		visual.drawMolecule(sMolecule);
 		Grid sGrid = new Grid(sMolecule, params);
 		visual.drawGrid(sGrid, new Cell(0, 0, 0), params);
-		Fourier f = new Fourier(sMolecule, mMolecule, params);
+		Solver f = new Solver(sMolecule, mMolecule, params);
 		
 		visual.showProgressBar();
 		new Thread(new Runnable() {
