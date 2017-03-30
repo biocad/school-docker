@@ -1,11 +1,13 @@
 import java.io.File;
 import java.io.IOException;
+import java.util.Random;
 
 import javax.swing.JButton;
 
 public class Main {
 	static Visual visual;
 	static Molecule sMolecule = null, mMolecule = null, m1,  m2;
+	static Random rand;
 	
 	static boolean ready() {
 		return m1 != null && m2 != null;
@@ -20,6 +22,7 @@ public class Main {
 			sMolecule = m2;
 			mMolecule = m1;
 		}
+		//mMolecule.rotate(rand.nextDouble(), rand.nextDouble(), rand.nextDouble());
 		Params params = new Params(sMolecule, mMolecule);
 		
 		visual.posMolecules(-sMolecule.getShift());

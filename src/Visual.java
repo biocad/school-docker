@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GraphicsConfiguration;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
@@ -10,11 +11,11 @@ import java.awt.event.MouseMotionListener;
 import java.io.File;
 
 import javax.media.j3d.Appearance;
+import javax.media.j3d.Background;
 import javax.media.j3d.BoundingSphere;
 import javax.media.j3d.Canvas3D;
 import javax.media.j3d.DirectionalLight;
 import javax.media.j3d.Material;
-import javax.media.j3d.RenderingAttributes;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
@@ -74,8 +75,13 @@ public class Visual extends JFrame {
 		// canvas
 		GraphicsConfiguration config = SimpleUniverse.getPreferredConfiguration();
 		Canvas3D canvas = new Canvas3D(config);
+		canvas.setBackground(new Color(1, 1, 1));
+		Background background = new Background(new Color3f(1, 1, 1));
+		background.setCapability(Background.ALLOW_COLOR_WRITE);
+		everything.add(background);
 		Color3f light1Color = new Color3f(1f, 1f, 1f);
 		BoundingSphere bounds = new BoundingSphere(new Point3d(0.0, 0.0, 0.0), 100.0);
+		background.setApplicationBounds(bounds);
 		Vector3f light1Direction = new Vector3f(4.0f, -7.0f, -12.0f);
 		DirectionalLight light1 = new DirectionalLight(light1Color, light1Direction);
 		light1.setInfluencingBounds(bounds);
@@ -86,17 +92,17 @@ public class Visual extends JFrame {
 		Object3D xAxis = new Object3D();
 		xAxis.add(new Cylinder((float) .01, 5));
 		xAxis.rot(Math.PI / 2, 0, 0);
-		wrapper.add(xAxis);
+		//wrapper.add(xAxis);
 
 		Object3D yAxis = new Object3D();
 		yAxis.add(new Cylinder((float) .01, 5));
 		yAxis.rot(0, Math.PI / 2, 0);
-		wrapper.add(yAxis);
+		//wrapper.add(yAxis);
 
 		Object3D zAxis = new Object3D();
 		zAxis.add(new Cylinder((float) .01, 5));
 		zAxis.rot(0, 0, Math.PI / 2);
-		wrapper.add(zAxis);
+		//wrapper.add(zAxis);
 
 		content = new Object3D();
 		content.scale(0.01);
@@ -208,7 +214,6 @@ public class Visual extends JFrame {
 					molecules.show();
 				} else {
 					molecules.hide();
-					//molecules.shift(1e6, 0, 0);
 				}
 			}
 		});
@@ -261,9 +266,6 @@ public class Visual extends JFrame {
 			Color3f color = new Color3f(r, g, b);
 			Material material = new Material(color, black, color, black, 1f);
 			ap.setMaterial(material);
-			RenderingAttributes attr = new RenderingAttributes();
-			attr.setAlphaTestValue((float) .5);
-			ap.setRenderingAttributes(attr);
 			sphere.setAppearance(ap);
 			Object3D obj = new Object3D();
 			obj.add(sphere);

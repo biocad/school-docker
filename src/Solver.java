@@ -2,7 +2,7 @@ import java.util.*;
 import org.jtransforms.fft.*;
 
 public class Solver {
-	private final double dangle = Math.PI / 6;
+	private double dangle = Math.PI / 3;
 	private ArrayList<Answer> answers = new ArrayList<>();
 	private DoubleFFT_3D fftDo;
 	private double largeNegativeValue = -1e12;
@@ -203,10 +203,11 @@ public class Solver {
 	// }
 	// }
 
-	public Answer apply() throws LockedMoleculeException {
+	public Answer apply() throws LockedMoleculeException { // apply()
 		int n = params.n;
 		fftDo = new DoubleFFT_3D(2 * n, 2 * n, 2 * n);
-		
+		//dangle = params.scale / params.d;
+		System.out.println(dangle / Math.PI * 180);
 		// generating grid and gridFT for the bigger molecule
 		Grid sGrid = new Grid(sMolecule, params);
 		double[][][] sArr = replaceInnerValues(sGrid, smallPositiveValue);
@@ -221,22 +222,32 @@ public class Solver {
 				}
 			}
 		}
-		
+		Clock clock = new Clock();
 		for (double ax = 0; ax < 2 * Math.PI; ax += dangle) {
 			for (double ay = 0; ay < 2 * Math.PI; ay += dangle) {
 				for (double az = 0; az < Math.PI; az += dangle) {
+					clock.stamp();
 					Molecule parser = mMolecule.clone();
 					parser.rotate(ax, ay, az);
+					clock.stamp("rotation");
 					
 					// generation of grid and gridFT for the smaller molecule
 					Grid mGrid = new Grid(parser, params);
+					clock.stamp("making grid");
 					double[][][] mArr = replaceInnerValues(mGrid, largeNegativeValue);
+					clock.stamp("replacing values");
 					double[][][] mFT = arrToFT(mArr);
+					clock.stamp("fft");
 
 					double[][][] ft = new double[2 * n][2 * n][4 * n];
 					multiply(ft, mFT, sFT);
+					clock.stamp("multiplying");
+					
 					makeInversable(ft);
+					clock.stamp("making");
+					
 					fftDo.realInverse(ft, true);
+					clock.stamp("inverse");
 					Answer[] localAnswers = findPeaks(ft);
 					for (int i = 0; i < localAnswers.length; i++) {
 						Answer answer = localAnswers[i];
@@ -247,9 +258,11 @@ public class Solver {
 					}
 					done++;
 					progress = 1. * done / total;
+					clock.stamp("finfing peaks");
 				}
 			}
 		}
+		System.out.println(clock.results());
 		progress = 1;
 		answers.sort(new Comparator<Answer>() {
 			@Override
@@ -267,35 +280,26 @@ public class Solver {
 		}
 		int a = 0;
 		for (int cur = 0; cur < len; cur++) {
+			double e = 0;
 			Answer answer = answers.get(cur);
 			Molecule m = mMolecule.clone();
 			m.rotate(answer.ax, answer.ay, answer.az);
 			int sl = sMolecule.iSize(), ml = mMolecule.iSize();
-			double fx = 0, fy = 0, fz = 0;
 			double ax = answer.i * params.scale;
 			double ay = answer.j * params.scale;
 			double az = answer.k * params.scale;
 			for (int i = 0; i < sl; i++) {
-				Atom sa = sMolecule.get(i);
+				Atom sa = sMolecule.iGet(i);
 				for (int j = 0; j < ml; j++) {
-					Atom ma = mMolecule.get(j);
+					Atom ma = mMolecule.iGet(j);
 					double dx = sa.x - ma.x - ax;
 					double dy = sa.y - ma.y - ay;
 					double dz = sa.z - ma.z - az;
-					double r2 = dx * dx + dy * dy + dz * dz, r = Math.sqrt(r2);
-					double f = sa.q * ma.q / r2;
-					fx += f * dx / r;
-					fy += f * dy / r;
-					fz += f * dz / r;
+					double r = Math.sqrt(dx * dx + dy * dy + dz * dz);
+					e += sa.q * ma.q / r;
 				}
 			}
-			double ss = sMolecule.getShift(), ms = mMolecule.getShift();
-			double dx = ss - ax - ms;
-			double dy = ss - ax - ms;
-			double dz = ss - ax - ms;
-			double cos = (dx * fx + dy * fy + dz * fz) / Math.sqrt((dx * dx + dy * dy + dz * dz) * (fx * fx + fy * fy + fz * fz));
-			System.out.println(cos + " " + answer.fitness);
-			if (cos > 0.5) {
+			if (e < 0) {
 				a = cur;
 				break;
 			}

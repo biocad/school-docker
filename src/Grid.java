@@ -12,6 +12,7 @@ public class Grid {
 		if (m.isLocked()) {
 			throw new LockedMoleculeException();
 		}
+		long t1 = System.currentTimeMillis();
 		int n = params.n, N = 2 * n;
 		arr = new double[N][N][N];
 		double scale = params.scale;
@@ -41,10 +42,11 @@ public class Grid {
 				}
 			}
 		}
+		long t2 = System.currentTimeMillis();
+		int corner = n/2 - 1;
 		boolean[] visited = new boolean[N * N * N];
 		// finding surface using DFS
 		Stack<Cell> stack = new Stack<>();
-		int corner = n/2 - 1;
 		stack.push(new Cell(corner, corner, corner));
 		while (!stack.isEmpty()) {
 			Cell cur = stack.peek();
@@ -53,7 +55,7 @@ public class Grid {
 				arr[cur.i][cur.j][cur.k] = surface;
 				cells.add(new Cell(cur.i - n/2, cur.j - n/2, cur.k - n/2));
 			} else {
-				for (int i = 0; i < 6; i++) {
+				for (int i = 0; i < Utils.neighbours.length; i++) {
 					int di = Utils.neighbours[i].i;
 					int dj = Utils.neighbours[i].j;
 					int dk = Utils.neighbours[i].k;
@@ -72,6 +74,9 @@ public class Grid {
 				stack.pop();
 			}
 		}
+		long t3 = System.currentTimeMillis();
+		System.out.println(t2 - t1 + " - main");
+		System.out.println(t3 - t2 + " - surface");
 	}
 	
 	public int size() {
